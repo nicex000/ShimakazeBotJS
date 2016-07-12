@@ -1,4 +1,6 @@
 <p style="text-align:center;">
+this is just a copy of wild beasts discord bot, please use his repository. this repo is for my own personal use, feel free to copy any code you want, as long as it complies with wild beasts terms</p>
+<p style="text-align:center;">
 <img src="http://i.imgur.com/3wB8dIH.png"></p>
 
 <p align="center">
