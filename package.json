@@ -1,0 +1,68 @@
+{
+  "private": true,
+  "name": "WildBeast",
+  "version": "3.0.0-beta.4",
+  "description": "A Discord Bot",
+  "main": "DougBot.js",
+  "maintainers": [
+    {
+      "name": "Pascal Meijer",
+      "email": "m1rr0rbr34k+github@gmail.com"
+    },
+    {
+      "name": "Curtis Hofstingburg",
+      "email": "chofstingburg@gmail.com",
+      "url": "https://curitzjt.cf/"
+    },
+    {
+      "name": "Anthony Zaza",
+      "email": "tony@lemonmc.com"
+    }
+  ],
+  "scripts": {
+    "prestart": "npm update",
+    "test": "standard & eslint **",
+    "start": "node DougBot.js"
+  },
+  "author": {
+    "name": "Remco Jongschaap",
+    "email": "Hello@dougley.ovh",
+    "url": "https://dougley.ovh"
+  },
+  "bugs": {
+    "url": "https://github.com/SteamingMutt/WildBeast/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SteamingMutt/WildBeast.git"
+  },
+  "engines": {
+    "node": "4.x.x - 5.10.1",
+    "npm": ">=3.x.x"
+  },
+  "license": "GPL-3.0",
+  "dependencies": {
+    "cleverbot-node": "^0.2.2",
+    "discordie": "^0.6.2",
+    "imgflipper": "^1.0.1",
+    "inquirer": "^0.12.0",
+    "leetspeak": "0.0.1",
+    "minimist": "^1.2.0",
+    "nedb": "^1.8.0",
+    "ora": "^0.2.1",
+    "request": "^2.72.0",
+    "require-directory": "^2.1.1",
+    "semver": "^5.1.0",
+    "unirest": "^0.5.0",
+    "winston": "^2.2.0",
+    "winston-daily-rotate-file": "^1.0.1",
+    "xml2js": "^0.4.16",
+    "youtube-api": "^2.0.2",
+    "youtube-dl": "^1.11.1",
+    "ytdl-core": "^0.7.15"
+  },
+  "devDependencies": {
+    "eslint": "^2.7.0",
+    "standard": "^7.1.1"
+  }
+}

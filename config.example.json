@@ -1,0 +1,27 @@
+{
+  "bot": {
+    "isbot": true,
+    "token": "Bot token",
+    "email": "If you need this, optional",
+    "password": "Again if you need this, optional",
+    "oauth": "URL"
+  },
+  "settings": {
+    "prefix": "anything can be entered as the global prefix along side mentions"
+  },
+  "permissions": {
+    "master": ["you need to enter the ID from the user you want as master here", "you can extend this array like this if you need more"],
+    "level1": [],
+    "level2": [],
+    "level3": []
+  },
+  "api_keys": {
+    "imgflip": {
+      "username": "Imgflip username",
+      "password": "imgflip password"
+    },
+    "google": "A google key",
+    "mashape": "A mashape key",
+    "cse": "Custom Search Engine token, the wiki describes this"
+  }
+}
