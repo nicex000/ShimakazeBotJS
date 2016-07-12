@@ -1,0 +1,27 @@
+﻿{
+  "bot": {
+    "isbot": true,
+    "token": "MTkxOTgxNDUxNDYwMzQ1ODU2.CkCWgQ.v3WQmhx-evyp8HYJRSM6SsTO0jo",
+    "email": "If you need this, optional",
+    "password": "Again if you need this, optional",
+    "oauth": "https://discordapp.com/oauth2/authorize?client_id=191977717623816193&scope=bot&permissions=3"
+  },
+  "settings": {
+    "prefix": "!"
+  },
+  "permissions": {
+    "master": ["nicex000", "島風♥", "@nicex000", "@島風♥", "@nicex000#1259", "@島風♥#1259"],
+    "level1": [],
+    "level2": [],
+    "level3": []
+  },
+  "api_keys": {
+    "imgflip": {
+      "username": "Imgflip username",
+      "password": "imgflip password"
+    },
+    "google": "AIzaSyDW5hDzIugZhnWPqiTzbNvWEmeVmy95E3w",
+    "mashape": "A mashape key",
+    "cse": "Custom Search Engine token, the wiki describes this"
+  }
+}
