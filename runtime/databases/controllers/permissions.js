@@ -35,9 +35,7 @@ exports.checkLevel = function (msg, user, roles) {
           doc[0].version !== undefined ? version = doc[0].version : version = 1
           insertNewStuff(msg.guild, version).catch((e) => Logger.error(e))
         } else {
-          if (msg.author.id == 155038222794227712)
-          {return resolve(10)}
-          else if (doc[0].superUser === user) {
+          if (doc[0].superUser === user) {
             return resolve(4)
           }
           var level = 0
