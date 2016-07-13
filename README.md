@@ -1,13 +1,11 @@
 <p style="text-align:center;">
-this is just a copy of wild beasts discord bot, please use his repository. this repo is for my own personal use, feel free to copy any code you want, as long as it complies with wild beasts terms</p>
-<p style="text-align:center;">
 <img src="http://i.imgur.com/3wB8dIH.png"></p>
 
 <p align="center">
 <a href="https://snap-ci.com/SteamingMutt/WildBeast/branch/master"><img src="https://snap-ci.com/SteamingMutt/WildBeast/branch/master/build_image" alt="Build Status"></a>
 <a href="http://nodejs.org"><img src="https://img.shields.io/badge/Node.js-5.10.1-blue.svg" alt="Node JS"></a>
 <a href="http://npmjs.com"><img src="https://img.shields.io/badge/npm-3.8.6-blue.svg" alt="npm"></a>
-<a><img src="https://img.shields.io/badge/Version-3.0.0--beta.4-blue.svg" alt="Version"></a>
+<a><img src="https://img.shields.io/badge/Version-3.0.0--beta.6-blue.svg" alt="Version"></a>
 <a href="https://discord.gg/0cFoiR5QVh5LZlQO"><img src="https://discordapp.com/api/servers/110462143152803840/widget.png" alt="Discord server"></a>
 </p>
 
@@ -43,24 +41,12 @@ WildBeast@3.0.0
 `-- nedb@1.8.0
 ```
 <br></br>
-Now, you have 2 choices, either make your own config file (This allows for greater customization, but won't directly allow for upgrading.), or let the script make you one (This lets you get started quicker, but takes a while to complete.)    
-<br></br>
-If you choose to make your own, take the `config.example.json` file as a base and edit it to your needs.   
-Then, run:
-```bash
-node DougBot.js --noinitial
-```
-This tells the script to skip the initial configuration and go straight to logging in.
-<br></br>
-<br></br>
-If you want the script to configure the basics for you, or you want to upgrade from a previous install, just run
+Now, you should make a config file, use `config.example.json` as a base and edit it to your needs.
+Once you're done, start WildBeast:
 ```bash
 node DougBot.js
 ```
-The script will then ask you some questions to get you started.
-<br></br>
-<br></br>
-If you made your own config file, and you want to upgrade your databases from a previous WildBeast install (that has a version higer than 2.1.0), run:
+If you need to uprade databases from a former 2.x.x install, start WildBeast differently:
 ```bash
 node DougBot.js --forceupgrade
 ```

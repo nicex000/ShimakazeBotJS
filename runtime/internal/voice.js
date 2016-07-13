@@ -1,29 +1,27 @@
 var list = {}
 var time = {}
 var status = {}
+var requestLink = {}
+var splitLink = {}
 var temp
-var x = 0
-var errors = 0
-var first = false
 var DL = require('ytdl-core')
 var YT = require('youtube-dl')
 var Logger = require('./logger.js').Logger
 var Config = require('../../config.json')
 
 exports.join = function (msg, suffix, bot) {
-  if (bot.VoiceConnections.length > 100) {
+  if (bot.VoiceConnections.length > 10) {
     msg.channel.sendMessage('Sorry, all streaming slots are taken, try again later. :cry:')
   } else {
     var voiceCheck = bot.VoiceConnections.find((r) => r.voiceConnection.guild.id === msg.guild.id)
     if (!voiceCheck && !suffix) {
       var VC = msg.member.getVoiceChannel()
-      if (VC || !called) {
+      if (VC) {
         VC.join().then((vc) => {
-          msg.channel.sendMessage('I joined channel **' + vc.voiceConnection.channel.name + '** which I believe you are currently in. \nYou have until the end of the wait music to request something.')
-          called = true
+          msg.channel.sendMessage('I\'ve joined voice channel **' + vc.voiceConnection.channel.name + '** which you\'re currently connected to. \nYou have until the end of the wait music to request something.\n\n__**Voice Commands**__\n**++request** - *Request a song via a youtube or soundcloud link, or any kind of compatible music file.*\n**++music pause** - *Pauses the current song.*\n**++music play** - *Resumes the current song.*\n**++volume** - *Change the volume of the current song.*\n\n**++playlist** - *List upcoming requested songs.*\n**++shuffle** - *Shuffle the music playlist.*\n\n**++voteskip** - *Vote to skip the current song.*\n**++skip** - *Force skip the current song.*\n\n**++leave-voice** - *Leaves the voice channel.*')
           status[msg.guild.id] = true
           time[msg.guild.id] = setTimeout(function () {
-            //leave(bot, msg)
+            leave(bot, msg)
             status[msg.guild.id] = false
           }, 199000)
           waiting(vc)
@@ -35,10 +33,9 @@ exports.join = function (msg, suffix, bot) {
       } else if (!VC) {
         msg.guild.voiceChannels[0].join().then((vc) => {
           msg.channel.sendMessage('I joined channel **' + vc.voiceConnection.channel.name + '** because you did not specify a channel for me to join. \nYou have until the end of the wait music to request something.')
-          called = true
           status[msg.guild.id] = true
           time[msg.guild.id] = setTimeout(function () {
-            //leave(bot, msg)
+            leave(bot, msg)
             status[msg.guild.id] = false
           }, 199000)
           waiting(vc)
@@ -54,10 +51,9 @@ exports.join = function (msg, suffix, bot) {
           if (channel.name.toLowerCase().indexOf(suffix.toLowerCase()) >= 0) {
             channel.join().then((vc) => {
               msg.channel.sendMessage('I joined **' + vc.voiceConnection.channel.name + '** \nYou have until the end of the wait music to request something.')
-              called = true
               status[msg.guild.id] = true
               time[msg.guild.id] = setTimeout(function () {
-              //  leave(bot, msg)
+                leave(bot, msg)
                 status[msg.guild.id] = false
               }, 199000)
               waiting(vc)
@@ -80,16 +76,12 @@ exports.join = function (msg, suffix, bot) {
 
 function leave (bot, msg) {
   if (status[msg.guild.id] === true) {
-  //  msg.channel.sendMessage('Nothing has been added to the playlist during the wait time, leaving voice!')
+    msg.channel.sendMessage('Nothing has been added to the playlist during the wait time, leaving voice!')
     var voice = bot.VoiceConnections.find((r) => r.voiceConnection.guild.id === msg.guild.id)
     if (voice) {
-    /*  voice.voiceConnection.getEncoder().kill()
-      voice.voiceConnection.disconnect()*/
-      list[msg.guild.id] = {
-        link: [],
-        info: [],
-        requester: []
-      }
+      voice.voiceConnection.getEncoder().kill()
+      voice.voiceConnection.disconnect()
+      delete list[msg.guild.id]
     }
   }
 }
@@ -98,13 +90,9 @@ exports.leave = function (msg, suffix, bot) {
   clearTimeout(time[msg.guild.id])
   var voice = bot.VoiceConnections.find((r) => r.voiceConnection.guild.id === msg.guild.id)
   if (voice) {
-  /*  voice.voiceConnection.getEncoder().kill()
-    voice.voiceConnection.disconnect()*/
-    list[msg.guild.id] = {
-      link: [],
-      info: [],
-      requester: []
-    }
+    voice.voiceConnection.getEncoder().kill()
+    voice.voiceConnection.disconnect()
+    delete list[msg.guild.id]
   }
 }
 
@@ -123,14 +111,17 @@ function next (msg, suffix, bot) {
     .map((connection) => {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
         if (list[msg.guild.id].link.length === 0) {
-          /*msg.channel.sendMessage('Playlist has ended, leaving voice.')
-          connection.voiceConnection.disconnect()*/
+          delete list[msg.guild.id]
+          msg.channel.sendMessage('Playlist has ended, leaving voice.')
+          connection.voiceConnection.disconnect()
           return
         }
         if (list[msg.guild.id].link[0] === 'INVALID') {
           list[msg.guild.id].link.shift()
           list[msg.guild.id].info.shift()
           list[msg.guild.id].requester.shift()
+          list[msg.guild.id].skips.count = 0
+          list[msg.guild.id].skips.users = []
         }
         var encoder = connection.voiceConnection.createExternalEncoder({
           type: 'ffmpeg',
@@ -149,6 +140,8 @@ function next (msg, suffix, bot) {
           list[msg.guild.id].link.shift()
           list[msg.guild.id].info.shift()
           list[msg.guild.id].requester.shift()
+          list[msg.guild.id].skips.count = 0
+          list[msg.guild.id].skips.users = []
           if (list[msg.guild.id].link.length > 0) {
             msg.channel.sendMessage('Next up is **' + list[msg.guild.id].info[0] + '** requested by _' + list[msg.guild.id].requester[0] + '_').then((m) => {
               setTimeout(() => {
@@ -156,17 +149,61 @@ function next (msg, suffix, bot) {
               }, 6000)
             })
             next(msg, suffix, bot)
-          } /*else {
+          } else {
             msg.channel.sendMessage('Playlist has ended, leaving voice.').then((m) => {
               setTimeout(() => {
                 m.delete().catch((e) => Logger.error(e))
               }, 3000)
             })
             connection.voiceConnection.disconnect()
-          }*/
+          }
         })
       }
     })
+}
+
+exports.shuffle = function (msg) {
+  var currentIndex = list[msg.guild.id].link.length,
+    temporaryValue, randomIndex
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex -= 1
+    if (currentIndex !== 0 && randomIndex !== 0) {
+      temporaryValue = list[msg.guild.id].link[currentIndex]
+      list[msg.guild.id].link[currentIndex] = list[msg.guild.id].link[randomIndex]
+      list[msg.guild.id].link[randomIndex] = temporaryValue
+      temporaryValue = list[msg.guild.id].info[currentIndex]
+      list[msg.guild.id].info[currentIndex] = list[msg.guild.id].info[randomIndex]
+      list[msg.guild.id].info[randomIndex] = temporaryValue
+      temporaryValue = list[msg.guild.id].requester[currentIndex]
+      list[msg.guild.id].requester[currentIndex] = list[msg.guild.id].requester[randomIndex]
+      list[msg.guild.id].requester[randomIndex] = temporaryValue
+    }
+  }
+}
+
+exports.voteSkip = function (msg, bot) {
+  var connect = bot.VoiceConnections
+    .filter(function (connection) {
+      return connection.voiceConnection.guild.id === msg.guild.id
+    })
+  if (connect.length < 1) {
+    msg.reply('No connection.')
+  } else {
+    var count = Math.round((connect[0].voiceConnection.channel.members.length - 2) / 2)
+    if (list[msg.guild.id].skips.users.indexOf(msg.author.id) > -1) {
+      msg.reply('You already voted to skip this song!')
+    } else {
+      list[msg.guild.id].skips.users.push(msg.author.id)
+      list[msg.guild.id].skips.count++
+      if (list[msg.guild.id].skips.count >= count) {
+        msg.channel.sendMessage('Voteskip passed, next song coming up!')
+        exports.skip(msg, null, bot)
+      } else {
+        msg.reply(`Voteskip registered, ${count - list[msg.guild.id].skips.count} more votes needed for the vote to pass.`)
+      }
+    }
+  }
 }
 
 exports.volume = function (msg, suffix, bot) {
@@ -187,10 +224,12 @@ exports.skip = function (msg, suffix, bot) {
   list[msg.guild.id].link.shift()
   list[msg.guild.id].info.shift()
   list[msg.guild.id].requester.shift()
+  list[msg.guild.id].skips.count = 0
+  list[msg.guild.id].skips.users = []
   next(msg, suffix, bot)
 }
 
-exports.pausePlay = function (msg, suffix, bot) {
+exports.music = function (msg, suffix, bot) {
   bot.VoiceConnections
     .map((connection) => {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
@@ -199,7 +238,7 @@ exports.pausePlay = function (msg, suffix, bot) {
         } else if (suffix.toLowerCase() === 'play') {
           connection.voiceConnection.getEncoderStream().uncork()
         } else {
-          msg.channel.sendMessage('**WHAT**')
+          msg.channel.sendMessage('Use either pause or play after the command.')
         }
       }
     })
@@ -226,7 +265,17 @@ exports.request = function (msg, suffix, bot) {
   }
   var link = require('url').parse(suffix)
   var query = require('querystring').parse(link.query)
-  if (query.list && query.list.length > 8 && link.host.indexOf('youtu') > -1) {
+  msg.channel.sendTyping()
+  if (suffix.includes('list=') !== suffix.includes('playlist?')) {
+    requestLink[msg.guild.id] = suffix
+    if (suffix.includes('youtu.be')) { // If the link is shortened with youtu.be
+      splitLink[msg.guild.id] = requestLink[msg.guild.id].split('?list=') // Check for this instead of &list
+      msg.channel.sendMessage(`Try ++request again with either a link to the video or the playlist.\n**Video:** <${splitLink[msg.guild.id][0]}>\n**Playlist:** <https://www.youtube.com/playlist?list=${splitLink[msg.guild.id][1]}>`)
+    } else {
+      splitLink[msg.guild.id] = requestLink[msg.guild.id].split('&list=')
+      msg.channel.sendMessage(`Try ++request again with either a link to the video or the playlist.\n**Video:** <${splitLink[msg.guild.id][0]}>\n**Playlist:** <https://www.youtube.com/playlist?list=${splitLink[msg.guild.id][1]}>`)
+    }
+  } else if (query.list && query.list.length > 8 && link.host.indexOf('youtu') > -1) {
     msg.channel.sendMessage('Playlist fetching might take a while...')
     var api = require('youtube-api')
     api.authenticate({
@@ -280,6 +329,7 @@ exports.leaveRequired = function (bot, guild) {
     })
   if (connect) {
     if (connect.voiceConnection.channel.members.length <= 1) {
+      delete list[guild.id]
       connect.voiceConnection.disconnect()
     }
   }
@@ -306,7 +356,11 @@ function fetch (v, msg, stats) {
             link: [i.url],
             info: [i.title],
             volume: 100,
-            requester: [msg.author.username]
+            requester: [msg.author.username],
+            skips: {
+              count: 0,
+              users: []
+            }
           }
           if (y > x) {
             return resolve({
@@ -355,45 +409,54 @@ function fetch (v, msg, stats) {
 }
 
 function safeLoop (msg, suffix, bot) {
-  for (var video in temp) {
-    var le = (list[msg.guild.id] !== undefined) ? list[msg.guild.id].link.length : 0
-    DLFetch(temp[video], temp[video].snippet.position + le, msg, suffix, bot)
+  if (temp.length === 0) {
+    msg.channel.sendMessage('Done fetching that playlist')
+  } else {
+    DLFetch(temp[0], msg, suffix, bot).then((f) => {
+      if (f) {
+        msg.channel.sendMessage(`Autoplaying ${list[msg.guild.id].info[0]}`)
+        next(msg, suffix, bot)
+      }
+      temp.shift()
+      safeLoop(msg, suffix, bot)
+    }, () => {
+      temp.shift()
+      safeLoop(msg, suffix, bot)
+    })
   }
 }
 
-function DLFetch (video, position, msg, suffix, bot) {
-  DL.getInfo('https://youtube.com/watch?v=' + video.snippet.resourceId.videoId, {
-    quality: 140
-  }, (err, i) => {
-    if (!err && i) {
-      x++
-      if (list[msg.guild.id] === undefined || list[msg.guild.id].link.length < 1) {
-        list[msg.guild.id] = {
-          link: [],
-          info: [],
-          volume: 100,
-          requester: []
+function DLFetch (video, msg) {
+  return new Promise(function (resolve, reject) {
+    var first = false
+    DL.getInfo('https://youtube.com/watch?v=' + video.snippet.resourceId.videoId, {
+      quality: 140
+    }, (err, i) => {
+      if (!err && i) {
+        if (list[msg.guild.id] === undefined || list[msg.guild.id].link.length < 1) {
+          list[msg.guild.id] = {
+            link: [],
+            info: [],
+            volume: 100,
+            requester: [],
+            skips: {
+              count: 0,
+              users: []
+            }
+          }
+          first = true
         }
-        first = true
+        list[msg.guild.id].link.push(i.formats[0].url)
+        list[msg.guild.id].info.push(i.title)
+        list[msg.guild.id].requester.push(msg.author.username)
+        return resolve(first)
+      } else {
+        list[msg.guild.id].link.push('INVALID')
+        list[msg.guild.id].info.push('INVALID')
+        list[msg.guild.id].requester.push('INVALID')
+        Logger.debug('Playlist debug, ' + err)
+        return reject(first)
       }
-      list[msg.guild.id].link[position] = i.formats[0].url
-      list[msg.guild.id].info[position] = i.title
-      list[msg.guild.id].requester[position] = msg.author.username
-    } else {
-      list[msg.guild.id].link[position] = 'INVALID'
-      list[msg.guild.id].info[position] = 'INVALID'
-      list[msg.guild.id].requester[position] = 'INVALID'
-      errors++
-      x++
-      Logger.debug('Playlist debug, ' + err)
-    }
-    if (x === temp.length) {
-      msg.channel.sendMessage(`Done, added ${x - errors} videos to the playlist. ${errors > 0 ? errors + ' videos failed to fetch' : ''}`)
-      x = 0
-      if (first === true) {
-        first = false
-        next(msg, suffix, bot)
-      }
-    }
+    })
   })
 }

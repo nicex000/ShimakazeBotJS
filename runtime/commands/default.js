@@ -1,7 +1,8 @@
-var Commands = []
+﻿var Commands = []
 var request = require('request')
 var config = require('../../config.json')
 var Logger = require('../internal/logger.js').Logger
+var argv = require('minimist')(process.argv.slice(2))
 
 Commands.ping = {
   name: 'ping',
@@ -68,8 +69,7 @@ Commands.purge = {
 Commands.eval = {
   name: 'eval',
   help: 'Allows for the execution of arbitrary Javascript.',
-  hidden: true,
-  level: 9,
+  level: 'master',
   fn: function (msg, suffix, bot) {
     if (msg.author.id === bot.User.id) return // To statisfy our styleguide :P
     var util = require('util')
@@ -83,19 +83,29 @@ Commands.eval = {
         str = str + '...'
       }
       str = str.replace(new RegExp(bot.token, 'gi'), '¯\\\_(ツ)_/¯')
-      msg.channel.sendMessage('```xl\n' + str + '\n```')
-      if (returned !== undefined && returned !== null && typeof returned.then === 'function') {
-        returned.then(() => {
-          var str = util.inspect(returned, {
-            depth: 1
+      msg.channel.sendMessage('```xl\n' + str + '\n```').then((ms) => {
+        if (returned !== undefined && returned !== null && typeof returned.then === 'function') {
+          returned.then(() => {
+            var str = util.inspect(returned, {
+              depth: 1
+            })
+            if (str.length > 1900) {
+              str = str.substr(0, 1897)
+              str = str + '...'
+            }
+            ms.edit('```xl\n' + str + '\n```')
+          }, (e) => {
+            var str = util.inspect(e, {
+              depth: 1
+            })
+            if (str.length > 1900) {
+              str = str.substr(0, 1897)
+              str = str + '...'
+            }
+            ms.edit('```xl\n' + str + '\n```')
           })
-          if (str.length > 1900) {
-            str = str.substr(0, 1897)
-            str = str + '...'
-          }
-          msg.channel.sendMessage('```xl\n' + str + '\n```')
-        })
-      }
+        }
+      })
     } catch (e) {
       msg.channel.sendMessage('```xl\n' + e + '\n```')
     }
@@ -105,8 +115,7 @@ Commands.eval = {
 Commands.plaineval = {
   name: 'plaineval',
   help: 'Allows for the execution of arbitrary Javascript.',
-  hidden: true,
-  level: 9,
+  level: 'master',
   fn: function (msg, suffix, bot) {
     if (msg.author.id === bot.User.id) return // To statisfy our styleguide :P
     var evalfin = []
@@ -188,9 +197,25 @@ Commands.info = {
   help: "I'll print some information about me.",
   timeout: 10,
   level: 0,
-  fn: function (msg) {
-    msgArray.push('mmm, you will have to ask nicex000 to fill this in Zekamashi.')
-    msg.channel.sendMessage(msgArray.join('\n'))
+  fn: function (msg, suffix, bot) {
+    var owner
+    try {
+      owner = ` is ${bot.Users.get(config.permissions.master[0]).username}#${bot.Users.get(config.permissions.master[0]).discriminator}`
+    } catch (e) {
+      owner = `'s ID is ${config.permissions.master[0]}`
+    }
+    msg.channel.sendMessage('```xl\n' + `I am ${bot.User.username}#${bot.User.discriminator}, and my ID is ${bot.User.id}
+I am running on WildBeast version ${require('../../package.json').version}
+My owner${owner}
+My developer is nicex000#1259
+-------------------------------------------------------
+Servers connected:  ${bot.Guilds.length}
+Channels connected: ${bot.Channels.length}
+Private channels:   ${bot.DirectMessageChannels.length}
+Messages recieved:  ${bot.Messages.length}
+Users known:        ${bot.Users.length}
+Bot is sharded?     ${(argv.shardmode ? 'Yes, this is shard ' + argv.shardid + ', and ' + argv.shardcount + ' shards are propagated.' : 'No')}
+` + '```')
   }
 }
 
@@ -198,7 +223,7 @@ Commands.leave = {
   name: 'leave',
   help: "I'll leave this server if I am not welcome here.",
   noDM: true,
-  level: 5,
+  level: 3,
   fn: function (msg) {
     if (msg.isPrivate) {
       msg.channel.sendMessage('You can not do this in a DM!')
@@ -212,7 +237,7 @@ Commands.leave = {
 Commands.killswitch = {
   name: 'killswitch',
   help: 'This will instantly terminate all running bot processes',
-  level: 5,
+  level: 'master',
   fn: function (msg, suffix, bot) {
     bot.disconnect()
     Logger.warn('Disconnected via killswitch!')
@@ -253,7 +278,7 @@ Commands.setlevel = {
     } else if (suffix[0] > 3) {
       msg.channel.sendMessage('Setting a level higher than 3 is not allowed.')
     } else if (msg.mentions.length === 0 && msg.mention_roles.length === 0) {
-      msg.reply('Please mention the user(s)/role(s) you want to set the permission level of.')
+      msg.reply('Please @mention the user(s)/role(s) you want to set the permission level of.')
     } else {
       Permissions.checkLevel(msg.guild, msg.author.id, msg.member.roles).then(function (level) {
         if (suffix[0] > level) {
@@ -304,11 +329,11 @@ Commands.setnsfw = {
 
 Commands.hello = {
   name: 'hello',
-  help: "I'll respond to you with hello!!",
+  help: "I'll respond to you with hello along with a GitHub link!",
   timeout: 20,
   level: 0,
   fn: function (msg, suffix, bot) {
-    msg.channel.sendMessage('Hi ' + msg.author.username + ", I'm " + bot.User.username)
+    msg.channel.sendMessage('Hi ' + msg.author.username + ", I'm " + bot.User.username + '! Help me improve by contributing to my source code on https://github.com/SteamingMutt/WildBeast')
   }
 }
 
@@ -329,8 +354,8 @@ Commands.setstatus = {
   name: 'setstatus',
   help: 'This will change my current status to something else.',
   module: 'default',
-  usage: '<online / idle / twitch url/ custom> [playing status]',
-  level: 5,
+  usage: '<online / idle / twitch url> [playing status]',
+  level: 'master',
   fn: function (msg, suffix, bot) {
     var first = suffix.split(' ')
     if (/^http/.test(first[0])) {
@@ -347,10 +372,7 @@ Commands.setstatus = {
         })
         msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix.substring(first[0].length + 1)}`)
       } else {
-        bot.User.setStatus(first[0], {
-          name: suffix
-        })
-        msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix}`)
+        msg.reply('Can only be `online` or `idle`')
       }
     }
   }

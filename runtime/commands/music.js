@@ -2,14 +2,14 @@
 var v = require('../internal/voice.js')
 var Commands = []
 
-Commands.pauseplay = {
-  name: 'pauseplay',
-  help: "I'll pause/play the music!",
-  aliases: ['playpause'],
+Commands.music = {
+  name: 'music',
+  help: "I'll pause or play the music, just tell me what after the command!",
+  aliases: ['pauseplay', 'playpause'],
   noDM: true,
   level: 1,
   fn: function (msg, suffix, bot) {
-    v.pausePlay(msg, suffix, bot)
+    v.music(msg, suffix, bot)
   }
 }
 
@@ -21,6 +21,27 @@ Commands.volume = {
   level: 1,
   fn: function (msg, suffix, bot) {
     v.volume(msg, suffix, bot)
+  }
+}
+
+Commands.voteskip = {
+  name: 'voteskip',
+  help: "Vote to skip the current playing song.",
+  noDM: true,
+  level: 1,
+  fn: function (msg, suffix, bot) {
+    v.voteSkip(msg, bot)
+  }
+}
+
+Commands.shuffle = {
+  name: 'shuffle',
+  help: "Shuffle the current playlist.",
+  noDM: true,
+  level: 2,
+  fn: function (msg) {
+    v.shuffle(msg)
+    msg.reply('Playlist shuffled')
   }
 }
 
@@ -38,7 +59,7 @@ Commands.skip = {
   name: 'skip',
   help: "I'll skip this song if you don't like it.",
   noDM: true,
-  level: 1,
+  level: 2,
   fn: function (msg, suffix, bot) {
     v.skip(msg, suffix, bot)
   }
@@ -46,7 +67,7 @@ Commands.skip = {
 
 Commands.playlist = {
   name: 'playlist',
-  help: "I'll fetch you the playlsit I'm currently playing!",
+  help: "I'll fetch you the playlist I'm currently playing!",
   aliases: ['list'],
   noDM: true,
   timeout: 10,
@@ -88,13 +109,18 @@ Commands.voice = {
 Commands.request = {
   name: 'request',
   help: 'Use this to request songs!',
-  aliases: ['queue', 'req'],
+  aliases: ['queue'],
   noDM: true,
   usage: 'link',
   timeout: 10,
   level: 1,
   fn: function (msg, suffix, bot) {
-    v.request(msg, suffix, bot)
+    var u = require('url').parse(suffix)
+    if (u.host === null) {
+      msg.channel.sendMessage("That's not how you do it, you need to enter a link to a file for me to play.")
+    } else {
+      v.request(msg, suffix, bot)
+    }
   }
 }
 
