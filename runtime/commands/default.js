@@ -354,8 +354,8 @@ Commands.setstatus = {
   name: 'setstatus',
   help: 'This will change my current status to something else.',
   module: 'default',
-  usage: '<online / idle / twitch url> [playing status]',
-  level: 'master',
+  usage: '<online / idle / twitch url/ custom> [playing status]',
+  level: 5,
   fn: function (msg, suffix, bot) {
     var first = suffix.split(' ')
     if (/^http/.test(first[0])) {
@@ -372,7 +372,10 @@ Commands.setstatus = {
         })
         msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix.substring(first[0].length + 1)}`)
       } else {
-        msg.reply('Can only be `online` or `idle`')
+        bot.User.setStatus(first[0], {
+          name: suffix
+        })
+        msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix}`)
       }
     }
   }
