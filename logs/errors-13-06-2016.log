@@ -1,0 +1,13 @@
+2016-06-13T19:57:17.192Z - error: Prefix error: undefined
+2016-06-13T19:57:23.550Z - error: Permission error: No database!
+2016-06-13T20:34:17.581Z - error:  killed=false, code=1, signal=null, cmd=D:\Bots\ShimakazeBot\node_modules\youtube-dl\bin\youtube-dl.exe --dump-json -f best --skip-download Kreygasm, done=true
+2016-06-13T21:16:05.415Z - error:  killed=false, code=1, signal=null, cmd=D:\Bots\ShimakazeBot\node_modules\youtube-dl\bin\youtube-dl.exe --dump-json -f best --skip-download , done=true
+2016-06-13T22:23:53.269Z - error: Disconnected from the Discord gateway: Error: Disconnected from primary gateway
+2016-06-13T22:51:22.258Z - error: Command error, thrown by hug: ReferenceError: user is not defined
+2016-06-13T22:51:50.365Z - error: Command error, thrown by hug: ReferenceError: user is not defined
+2016-06-13T22:52:23.729Z - error: Command error, thrown by hug: ReferenceError: user is not defined
+2016-06-13T22:52:55.974Z - error: Command error, thrown by hug: TypeError: msg.sendMessage is not a function
+2016-06-13T22:53:24.436Z - error: Command error, thrown by hug: ReferenceError: user is not defined
+2016-06-13T22:54:41.866Z - error: Command error, thrown by hug: TypeError: msg.sendMessage is not a function
+2016-06-13T23:03:38.156Z - error: Command error, thrown by hug: TypeError: Cannot read property 'id' of undefined
+2016-06-13T23:25:53.345Z - error: Command error, thrown by hug: ReferenceError: Permissions is not defined
