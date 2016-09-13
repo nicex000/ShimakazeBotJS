@@ -6,17 +6,7 @@
   "main": "shima.js",
   "maintainers": [
     {
-      "name": "Pascal Meijer",
-      "email": "m1rr0rbr34k+github@gmail.com"
-    },
-    {
-      "name": "Curtis Hofstingburg",
-      "email": "curtis@curitzjt.cf",
-      "url": "https://curitzjt.cf/"
-    },
-    {
-      "name": "Anthony Zaza",
-      "email": "tony@lemonmc.com"
+      "name": "nicex000"
     }
   ],
   "scripts": {
@@ -25,9 +15,7 @@
     "start": "node DougBot.js"
   },
   "author": {
-    "name": "Remco Jongschaap",
-    "email": "Hello@dougley.com",
-    "url": "https://dougley.com"
+    "name": "nicex000"
   },
   "bugs": {
     "url": "https://github.com/SteamingMutt/WildBeast/issues"

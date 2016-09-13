@@ -179,7 +179,7 @@ exports.lovelive = function (msg, suffix, bot) {
 function waiting (vc) {
   var waitMusic = vc.voiceConnection.createExternalEncoder({
     type: 'ffmpeg',
-    source: "C:/Users/MartinNicholas/Music/Love Live/Love Live! μ's Best Album - Best Live! collection/Disc 1/03 - Snow halation.mp3", // Caps sensitive why
+    source: "lobbySong.mp3", // Caps sensitive why
     format: 'pcm'
   })
   waitMusic.play()
