@@ -96,10 +96,90 @@ exports.leave = function (msg, suffix, bot) {
   }
 }
 
+exports.lovelive = function (msg, suffix, bot) {
+  bot.VoiceConnections
+    .map((connection) => {
+      if (connection.voiceConnection.guild.id === msg.guild.id) {
+        var dir = "C:/Users/MartinNicholas/Music/Love Live/";
+        switch (parseInt(suffix[0]))
+        {
+          default:
+            dir+="Love Live! μ's Best Album - Best Live! collection/";
+            switch (parseInt(suffix[2]))
+            {
+              default:
+                dir+="Disc 1";
+                break;
+              case 2:
+                dir+="Disc 2";
+                break;
+            }
+            break;
+          case 2:
+            dir+="Love Live! μ's Best Album - Best Live! collection II/";
+            switch (parseInt(suffix[2]))
+            {
+              default:
+                dir+="Disc 1";
+                break;
+              case 2:
+                dir+="Disc 2";
+                break;
+              case 3:
+                dir+="Disc 3";
+                break;
+            }
+            break;
+        }
+        var filesystem = require("fs");
+        var results = [];
+
+        filesystem.readdirSync(dir).forEach(function(file) {
+
+            file = dir+'/'+file;
+            var stat = filesystem.statSync(file);
+
+            if (stat && stat.isDirectory()) {
+                results = results.concat(_getAllFilesFromFolder(file))
+            } else results.push(file);
+
+        });
+        if(suffix.length > 5)
+        {
+          if(results.length <= parseInt(suffix.substring(4,6)) ||  parseInt(suffix.substring(4,6)) < 1)
+          {
+            dir = results[0];
+          }
+          else
+          {
+            dir = results[parseInt(suffix.substring(4,6))-1];
+          }
+        }
+        else
+        {
+          if(results.length <= parseInt(suffix[4])||  parseInt(suffix[4]) < 1)
+          {
+            dir = results[0];
+          }
+          else
+          {
+            dir = results[parseInt(suffix[4])-1];
+          }
+        }
+
+        var ll = connection.voiceConnection.createExternalEncoder({
+          type: 'ffmpeg',
+          source: dir, // Caps sensitive why
+          format: 'pcm'
+        })
+        ll.play()
+      }
+    })
+}
 function waiting (vc) {
   var waitMusic = vc.voiceConnection.createExternalEncoder({
     type: 'ffmpeg',
-    source: 'Fanta.mp3', // Caps sensitive why
+    source: "C:/Users/MartinNicholas/Music/Love Live/Love Live! μ's Best Album - Best Live! collection/Disc 1/03 - Snow halation.mp3", // Caps sensitive why
     format: 'pcm'
   })
   waitMusic.play()
@@ -112,8 +192,7 @@ function next (msg, suffix, bot) {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
         if (list[msg.guild.id].link.length === 0) {
           delete list[msg.guild.id]
-          msg.channel.sendMessage('Playlist has ended, leaving voice.')
-          connection.voiceConnection.disconnect()
+
           return
         }
         if (list[msg.guild.id].link[0] === 'INVALID') {
@@ -149,13 +228,6 @@ function next (msg, suffix, bot) {
               }, 6000)
             })
             next(msg, suffix, bot)
-          } else {
-            msg.channel.sendMessage('Playlist has ended, leaving voice.').then((m) => {
-              setTimeout(() => {
-                m.delete().catch((e) => Logger.error(e))
-              }, 3000)
-            })
-            connection.voiceConnection.disconnect()
           }
         })
       }

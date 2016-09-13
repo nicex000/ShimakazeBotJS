@@ -1,2 +1,2 @@
-node C:\Users\Administrator\Documents\GitHub\ShimakazeBot\shima.js --noinitial
+node D:\Bots\ShimakazeBot\shima.js --noinitial
 pause

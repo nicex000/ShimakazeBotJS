@@ -55,6 +55,17 @@ Commands['leave-voice'] = {
   }
 }
 
+Commands.lovelive = {
+  name: 'lovelive',
+  help: "play a love live song from the LL collections. Usage: !lovelive <collection n> <disc n> <song n>",
+  aliases: ['ll', 'LL', 'llive', 'raburaibu'],
+  noDM: true,
+  level: 1,
+  fn: function (msg, suffix, bot) {
+    v.lovelive(msg, suffix, bot)
+  }
+}
+
 Commands.skip = {
   name: 'skip',
   help: "I'll skip this song if you don't like it.",
@@ -109,7 +120,7 @@ Commands.voice = {
 Commands.request = {
   name: 'request',
   help: 'Use this to request songs!',
-  aliases: ['queue'],
+  aliases: ['queue', 'req'],
   noDM: true,
   usage: 'link',
   timeout: 10,
