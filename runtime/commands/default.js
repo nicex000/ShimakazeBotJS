@@ -1,4 +1,4 @@
-﻿var Commands = []
+var Commands = []
 var request = require('request')
 var config = require('../../config.json')
 var Logger = require('../internal/logger.js').Logger
@@ -11,7 +11,8 @@ Commands.ping = {
   timeout: 10,
   level: 0,
   fn: function (msg) {
-    msg.reply('Pong!')
+    msg.channel.sendMessage('Pong!')
+    Logger.warn(msg.channel.name)
   }
 }
 
@@ -29,7 +30,7 @@ Commands.say = {
     } else if (re.test(msg.content)) {
       msg.reply('Lol no thanks, not sending that.')
     } else {
-      msg.channel.sendMessage('\u200B' + suffix)
+      msg.channel.sendMessage('\u200B' + suffix.replace(/@everyone/, '@\u200Beveryone').replace(/@here/, '@\u200Bhere'))
     }
   }
 }
@@ -82,7 +83,7 @@ Commands.eval = {
         str = str.substr(0, 1897)
         str = str + '...'
       }
-      str = str.replace(new RegExp(bot.token, 'gi'), '¯\\\_(ツ)_/¯')
+      str = str.replace(new RegExp(bot.token, 'gi'), '( ͡° ͜ʖ ͡°)') // Because some frog broke this string with a shruglenny
       msg.channel.sendMessage('```xl\n' + str + '\n```').then((ms) => {
         if (returned !== undefined && returned !== null && typeof returned.then === 'function') {
           returned.then(() => {
@@ -219,8 +220,8 @@ Bot is sharded?     ${(argv.shardmode ? 'Yes, this is shard ' + argv.shardid + '
   }
 }
 
-Commands.leave = {
-  name: 'leave',
+Commands['leave-server'] = {
+  name: 'leave-server',
   help: "I'll leave this server if I am not welcome here.",
   noDM: true,
   level: 3,
@@ -270,7 +271,7 @@ Commands.setlevel = {
   noDM: true,
   module: 'default',
   level: 3,
-  fn: function (msg, suffix) {
+  fn: function (msg, suffix, bot) {
     var Permissions = require('../databases/controllers/permissions.js')
     suffix = suffix.split(' ')
     if (isNaN(suffix[0])) {
@@ -279,15 +280,9 @@ Commands.setlevel = {
       msg.channel.sendMessage('Setting a level higher than 3 is not allowed.')
     } else if (msg.mentions.length === 0 && msg.mention_roles.length === 0) {
       msg.reply('Please @mention the user(s)/role(s) you want to set the permission level of.')
+    } else if (msg.mentions.length === 1 && msg.mentions[0].id === bot.User.id) {
+      msg.reply("I don't need any level set, I can do anything regardless of access levels.")
     } else {
-      Permissions.checkLevel(msg.guild, msg.author.id, msg.member.roles).then(function (level) {
-        if (suffix[0] > level) {
-          msg.reply("Can't set a user's permissions higher than your own!") // Not that you can anyhow via conventional methods
-        }
-      }).catch(function (error) {
-        msg.channel.sendMessage('Help! Something went wrong!')
-        Logger.error(error)
-      })
       Permissions.adjustLevel(msg, msg.mentions, parseFloat(suffix[0]), msg.mention_roles).then(function () {
         msg.channel.sendMessage('Alright! The permission levels have been set successfully!')
       }).catch(function (err) {
@@ -337,25 +332,12 @@ Commands.hello = {
   }
 }
 
-Commands.status = {
-  name: 'status',
-  help: "I'll get some info about me, like my uptime and my server count!",
-  timeout: 20,
-  level: 0,
-  fn: function (msg, suffix, bot) {
-    var msgArray = []
-    msgArray.push('Hi ' + msg.author.username + ' , my name is ' + bot.User.username + ', nice to meet you!')
-    msgArray.push("I'm used in " + bot.Guilds.length + ' servers, in ' + bot.Channels.length + ' channels, and by ' + bot.Users.length + ' users!')
-    msg.channel.sendMessage(msgArray.join('\n'))
-  }
-}
-
 Commands.setstatus = {
   name: 'setstatus',
   help: 'This will change my current status to something else.',
   module: 'default',
-  usage: '<online / idle / twitch url/ custom> [playing status]',
-  level: 5,
+  usage: '<online / idle / twitch url / custom> [playing status]',
+  level: 'master',
   fn: function (msg, suffix, bot) {
     var first = suffix.split(' ')
     if (/^http/.test(first[0])) {
@@ -398,7 +380,8 @@ Commands['server-info'] = {
       var msgArray = []
       msgArray.push('Information requested by ' + msg.author.mention)
       msgArray.push('Server name: **' + msg.guild.name + '** (id: `' + msg.guild.id + '`)')
-      msgArray.push('Owned by **' + msg.guild.owner.username + '** (id: `' + msg.guild.owner_id + '`)')
+      msgArray.push('Server acronym: **' + msg.guild.acronym + '**')
+      msgArray.push('Owned by **' + msg.guild.owner.username + '#' + msg.guild.owner.discriminator + '** (id: `' + msg.guild.owner_id + '`)')
       msgArray.push('Current region: **' + msg.guild.region + '**.')
       msgArray.push('This server has **' + msg.guild.members.length + '** members')
       msgArray.push('This server has **' + msg.guild.textChannels.length + '** text channels.')
@@ -442,6 +425,7 @@ Commands.userinfo = {
         msgArray.push('Requested user: ' + msg.author.username + '#' + msg.author.discriminator)
         msgArray.push('ID: ' + msg.author.id)
         msgArray.push('Status: ' + msg.author.status)
+        msgArray.push('Account created at: ' + msg.author.createdAt)
         if (msg.author.gameName) {
           msgArray.push('Playing: ' + msg.author.gameName)
         }
@@ -469,6 +453,7 @@ Commands.userinfo = {
         msgArray.push('```', 'Requested user: ' + user.username + '#' + user.discriminator)
         msgArray.push('ID: ' + user.id)
         msgArray.push('Status: ' + user.status)
+        msgArray.push('RegisteredAt: ' + user.registeredAt)
         if (user.gameName) {
           msgArray.push('Playing: ' + user.gameName)
         }
@@ -610,6 +595,27 @@ Commands.ban = {
         msg.reply('Your last argument must be a number or nothing for the default of 0, can only be 0, 1 or 7!')
       }
     }
+  }
+}
+
+Commands.prefix = {
+  name: 'prefix',
+  help: "If you, despite reading this have no clue what my prefix is, I'll tell you!",
+  module: 'default',
+  timeout: 5,
+  level: 0,
+  fn: function (msg) {
+    var datacontrol = require('../datacontrol')
+    datacontrol.customize.prefix(msg).then((prefix) => {
+      if (prefix) {
+        msg.channel.sendMessage(`My prefix is ${prefix}`)
+      } else {
+        msg.channel.sendMessage(`My prefix is ${config.settings.prefix}`) // Default prefix, if none is set in customize
+      }
+    }).catch((error) => {
+      Logger.error(error)
+      msg.channel.sendMessage('Whoops, something went wrong.')
+    })
   }
 }
 
