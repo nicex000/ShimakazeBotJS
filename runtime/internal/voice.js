@@ -326,6 +326,9 @@ exports.voteSkip = function (msg, bot) {
     var count = Math.round((connect[0].voiceConnection.channel.members.length - 2) / 2)
     if (list[msg.guild.id].skips.users.indexOf(msg.author.id) > -1) {
       msg.reply('You already voted to skip this song!')
+    }
+    else if (msg.member.getVoiceChannel() !=  connect[0].voiceConnection.channel) {
+      msg.reply(`You can't voteskip when not in the same voice channel.`)
     } else {
       list[msg.guild.id].skips.users.push(msg.author.id)
       list[msg.guild.id].skips.count++
@@ -364,6 +367,21 @@ exports.skip = function (msg, suffix, bot) {
   list[msg.guild.id].skips.count = 0
   list[msg.guild.id].skips.users = []
   next(msg, suffix, bot)
+}
+
+exports.selfSkip = function (msg, suffix, bot) {
+  if(msg.author.username == list[msg.guild.id].requester[0])
+  {
+    list[msg.guild.id].link.shift()
+    list[msg.guild.id].info.shift()
+    list[msg.guild.id].requester.shift()
+    list[msg.guild.id].skips.count = 0
+    list[msg.guild.id].skips.users = []
+    next(msg, suffix, bot)
+  }
+  else {
+    msg.reply("You can't skip a song you didn't request")
+  }
 }
 
 exports.music = function (msg, suffix, bot) {

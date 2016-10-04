@@ -73,7 +73,7 @@ Commands.sjoin = {
   help: 'silent join',
   aliases:['sj', 's'],
   hidden: true,
-  level: 5,
+  level: 0,
   fn: function (msg, suffix, bot){
     var VC = msg.member.getVoiceChannel()
     VC.join()
@@ -106,6 +106,33 @@ Commands.parrot = {
   }
 }
 
+Commands.bj = {
+  name: 'bj',
+  help: 'pls no',
+  hidden: true,
+  level: 0,
+  fn: function (msg, suffix, bot){
+    if(msg.author.id == 155038222794227712)
+    {
+      if(msg.isPrivate)
+      {
+        msg.reply("*makes lewd sounds*")
+      }
+      else
+      {
+        msg.reply("Not Here!")
+      }
+    }
+    else if(msg.author.id == 66792137647206400)
+    {
+        msg.reply("pls, go ask Billy gachiPls")
+    }
+    else
+    {
+      msg.reply("FUCK OFF!")
+    }
+  }
+}
 
 
 exports.Commands = Commands

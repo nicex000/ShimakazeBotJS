@@ -32,6 +32,11 @@ Commands.say = {
     } else {
       msg.channel.sendMessage('\u200B' + suffix.replace(/@everyone/, '@\u200Beveryone').replace(/@here/, '@\u200Bhere'))
     }
+    msg.channel.fetchMessages(1).then((result) => {
+      bot.Messages.deleteMessages(result.messages)
+    }).catch((error) => {
+      Logger.error(error)
+    })
   }
 }
 
@@ -475,7 +480,7 @@ Commands.userinfo = {
 Commands['join-server'] = {
   name: 'join-server',
   help: "I'll join the server you've requested me to join, as long as the invite is valid and I'm not banned of already in the requested server.",
-  aliases: ['join', 'joinserver', 'invite'],
+  aliases: ['joinserver', 'invite'],
   module: 'default',
   usage: '<bot-mention> <instant-invite>',
   level: 0,

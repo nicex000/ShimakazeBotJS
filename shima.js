@@ -61,6 +61,9 @@ bot.Dispatcher.on(Event.GATEWAY_READY, function () {
   })
   Logger.info('Ready to start!')
   Logger.info(`Logged in as ${bot.User.username}#${bot.User.discriminator} (ID: ${bot.User.id}) and serving ${bot.Users.length} users in ${bot.Guilds.length} servers.`)
+  bot.User.setStatus("online", {
+    name: "with Rensouhou-chan"
+  })
 })
 
 bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
