@@ -49,7 +49,7 @@ Commands['leave-voice'] = {
   name: 'leave-voice',
   help: "I'll leave the current voice channel.",
   noDM: true,
-  level: 0,
+  level: 3,
   fn: function (msg, suffix, bot) {
     v.leave(msg, suffix, bot)
   }
