@@ -76,7 +76,9 @@ Commands.sjoin = {
   level: 0,
   fn: function (msg, suffix, bot){
     var VC = msg.member.getVoiceChannel()
-    VC.join()
+    if (VC) {
+      VC.join()
+    }
     msg.channel.fetchMessages(1).then((result) => {
       bot.Messages.deleteMessages(result.messages)
     }).catch((error) => {

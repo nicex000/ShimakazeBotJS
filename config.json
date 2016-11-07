@@ -1,4 +1,4 @@
-﻿{
+{
   "bot": {
     "isbot": true,
     "token": "MTkxOTgxNDUxNDYwMzQ1ODU2.CkCWgQ.v3WQmhx-evyp8HYJRSM6SsTO0jo",
@@ -6,8 +6,18 @@
     "password": "Again if you need this, optional",
     "oauth": "https://discordapp.com/oauth2/authorize?client_id=191977717623816193&scope=bot&permissions=3"
   },
+  "database":{
+    "host": "localhost",
+    "port": 28015,
+    "password": "",
+    "user": "admin"
+  },
   "settings": {
-    "prefix": "!"
+    "prefix": "!",
+    "autodeletemsg": true,
+    "deleteTimeout": 3000,
+    "deleteTimeoutLong": 6000,
+    "maxvcslots": 50
   },
   "permissions": {
     "master": ["nicex000#1259", "@nicex000#1259", "島風♥", "@nicex000", "@島風♥", "nicex000", "@島風♥#1259", "155038222794227712"],
@@ -22,6 +32,7 @@
     },
     "google": "AIzaSyBLQaWjyEg5Juar0RG7DYuSoFnIvbhwKT4",
     "mashape": "A mashape key",
-    "cse": "Custom Search Engine token, the wiki describes this"
+    "cse": "Not required anymore, ignore this field",
+    "twitchId": "kc2anl6ytv1jptqsrwt4oiiwflejc5e"
   }
 }

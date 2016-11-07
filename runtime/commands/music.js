@@ -60,7 +60,7 @@ Commands.lovelive = {
   help: "play a love live song from the LL collections. Usage: !lovelive <collection n> <disc n> <song n>",
   aliases: ['ll', 'LL', 'llive', 'raburaibu'],
   noDM: true,
-  level: 0,
+  level: 3,
   fn: function (msg, suffix, bot) {
     v.lovelive(msg, suffix, bot)
   }
@@ -73,29 +73,29 @@ Commands.skip = {
   level: 0,
   fn: function (msg, suffix, bot) {
     var Permissions = require('../databases/controllers/permissions.js')
-      Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
-        if(level)
-        {
-          v.skip(msg, suffix, bot)
-          msg.channel.sendMessage('Skipped.').then((m) => {
-            setTimeout(() => {
-              m.delete().catch((e) => Logger.error(e))
-            }, 3000)
-          })
-        }
-        else
-        {
-          v.selfSkip(msg, suffix, bot)
-          msg.channel.sendMessage('Skipped own song.').then((m) => {
-            setTimeout(() => {
-              m.delete().catch((e) => Logger.error(e))
-            }, 3000)
-          })
-        }
-      }).catch((error) => {
-        msg.channel.sendMessage('Something went wrong, try again later.')
-        Logger.error(error)
-    })
+        Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+          if(level)
+          {
+            v.skip(msg, suffix, bot)
+            msg.channel.sendMessage('Skipped.').then((m) => {
+              setTimeout(() => {
+                m.delete().catch((e) => Logger.error(e))
+              }, 3000)
+            })
+          }
+          else
+          {
+            v.selfSkip(msg, suffix, bot)
+            msg.channel.sendMessage('Skipped own song.').then((m) => {
+              setTimeout(() => {
+                m.delete().catch((e) => Logger.error(e))
+              }, 3000)
+            })
+          }
+        }).catch((error) => {
+          msg.channel.sendMessage('Something went wrong, try again later.')
+          Logger.error(error)
+      })
   }
 }
 
@@ -134,7 +134,7 @@ Commands.voice = {
   aliases: ['join-voice', 'join'],
   noDM: true,
   timeout: 10,
-  level: 0,
+  level: 1,
   fn: function (msg, suffix, bot) {
     v.join(msg, suffix, bot)
   }
@@ -151,7 +151,7 @@ Commands.request = {
   fn: function (msg, suffix, bot) {
     var u = require('url').parse(suffix)
     if (u.host === null) {
-      msg.channel.sendMessage("That's not how you do it, you need to enter a link to a file for me to play.")
+      v.request(msg, 'ytsearch:' + suffix, bot)
     } else {
       v.request(msg, suffix, bot)
     }

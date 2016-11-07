@@ -1,8 +1,8 @@
 {
   "private": true,
   "name": "Shimakaze-chan",
-  "version": "3.1.1",
-  "description": "Shimakaze discord bot",
+  "version": "4.0.0",
+  "description": "Shimakaze Discord Bot",
   "main": "shima.js",
   "maintainers": [
     {
@@ -18,11 +18,11 @@
     "name": "nicex000"
   },
   "bugs": {
-    "url": "https://github.com/SteamingMutt/WildBeast/issues"
+    "url": "https://github.com/TheSharks/WildBeast/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SteamingMutt/WildBeast.git"
+    "url": "git+https://github.com/TheSharks/WildBeast.git"
   },
   "engines": {
     "node": "4.x.x - 5.10.1",
@@ -31,16 +31,17 @@
   "license": "GPL-3.0",
   "dependencies": {
     "cleverbot-node": "^0.2.2",
-    "discordie": "^0.8.0",
+    "discordie": "^0.9.0",
     "imgflipper": "^1.0.1",
     "leetspeak": "0.0.1",
     "minimist": "^1.2.0",
-    "nedb": "^1.8.0",
-    "ora": "^0.2.1",
+    "ora": "^0.3.0",
     "prompt": "^1.0.0",
     "request": "^2.72.0",
     "require-directory": "^2.1.1",
+    "rethinkdbdash": "^2.3.23",
     "semver": "^5.1.0",
+    "tagscript": "github:guscaplan/tagscript",
     "unirest": "^0.5.0",
     "winston": "^2.2.0",
     "winston-daily-rotate-file": "^1.0.1",
@@ -51,6 +52,6 @@
   },
   "devDependencies": {
     "eslint": "^3.0.0",
-    "standard": "^7.1.1"
+    "standard": "^8.1.0"
   }
 }

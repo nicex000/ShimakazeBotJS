@@ -7,12 +7,13 @@ var argv = require('minimist')(process.argv.slice(2))
 Commands.ping = {
   name: 'ping',
   help: "I'll reply to you with pong!",
-  module: 'default',
   timeout: 10,
   level: 0,
   fn: function (msg) {
-    msg.channel.sendMessage('Pong!')
-    Logger.warn(msg.channel.name)
+    var initTime = new Date(msg.timestamp)
+    msg.reply('Pong!').then((m) => {
+      m.edit('<@' + msg.author.id + '>, Pong! Time taken: ' + Math.floor(new Date(m.timestamp) - initTime) + ' ms.')
+    })
   }
 }
 
@@ -20,7 +21,6 @@ Commands.say = {
   name: 'say',
   help: 'Repeat after me.',
   aliases: ['echo', 'repeat'],
-  module: 'default',
   timeout: 10,
   level: 0,
   fn: function (msg, suffix) {
@@ -32,11 +32,6 @@ Commands.say = {
     } else {
       msg.channel.sendMessage('\u200B' + suffix.replace(/@everyone/, '@\u200Beveryone').replace(/@here/, '@\u200Bhere'))
     }
-    msg.channel.fetchMessages(1).then((result) => {
-      bot.Messages.deleteMessages(result.messages)
-    }).catch((error) => {
-      Logger.error(error)
-    })
   }
 }
 
@@ -152,7 +147,8 @@ Commands.twitch = {
     request({
       url: url,
       headers: {
-        'Accept': 'application/vnd.twitchtv.v3+json'
+        'Accept': 'application/vnd.twitchtv.v3+json',
+        'Client-ID': config.api_keys.twitchId
       }
     }, function (error, response, body) {
       if (!error && response.statusCode === 200) {
@@ -274,7 +270,6 @@ Commands.setlevel = {
   name: 'setlevel',
   help: 'This changes the permission level of a user.',
   noDM: true,
-  module: 'default',
   level: 3,
   fn: function (msg, suffix, bot) {
     var Permissions = require('../databases/controllers/permissions.js')
@@ -283,7 +278,7 @@ Commands.setlevel = {
       msg.reply('Your first parameter is not a number!')
     } else if (suffix[0] > 3) {
       msg.channel.sendMessage('Setting a level higher than 3 is not allowed.')
-    } else if (msg.mentions.length === 0 && msg.mention_roles.length === 0) {
+    } else if (msg.mentions.length === 0 && msg.mention_roles.length === 0 && !msg.mention_everyone) {
       msg.reply('Please @mention the user(s)/role(s) you want to set the permission level of.')
     } else if (msg.mentions.length === 1 && msg.mentions[0].id === bot.User.id) {
       msg.reply("I don't need any level set, I can do anything regardless of access levels.")
@@ -302,7 +297,6 @@ Commands.setnsfw = {
   name: 'setnsfw',
   help: 'This changes if the channel allows NSFW commands.',
   noDM: true,
-  module: 'default',
   usage: '<on | off>',
   level: 3,
   fn: function (msg, suffix) {
@@ -329,18 +323,17 @@ Commands.setnsfw = {
 
 Commands.hello = {
   name: 'hello',
-  help: "I'll respond to you with hello along with a GitHub link!",
+  help: "hi",
   timeout: 20,
   level: 0,
   fn: function (msg, suffix, bot) {
-    msg.channel.sendMessage('Hi ' + msg.author.username + ", I'm " + bot.User.username + '! Help me improve by contributing to my source code on https://github.com/SteamingMutt/WildBeast')
+    msg.channel.sendMessage('NyanPasu ' + msg.author.username)
   }
 }
 
 Commands.setstatus = {
   name: 'setstatus',
   help: 'This will change my current status to something else.',
-  module: 'default',
   usage: '<online / idle / twitch url / custom> [playing status]',
   level: 'master',
   fn: function (msg, suffix, bot) {
@@ -360,9 +353,9 @@ Commands.setstatus = {
         msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix.substring(first[0].length + 1)}`)
       } else {
         bot.User.setStatus(first[0], {
-          name: suffix
-        })
-        msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix}`)
+            name: suffix
+          })
+          msg.channel.sendMessage(`Set status to ${first[0]} with message ${suffix}`)
       }
     }
   }
@@ -373,7 +366,6 @@ Commands['server-info'] = {
   help: "I'll tell you some information about the server you're currently in.",
   aliases: ['serverinfo'],
   noDM: true,
-  module: 'default',
   timeout: 20,
   level: 0,
   fn: function (msg) {
@@ -414,7 +406,6 @@ Commands.userinfo = {
   name: 'userinfo',
   help: "I'll get some information about the user you've mentioned.",
   noDM: true,
-  module: 'default',
   level: 0,
   fn: function (msg) {
     var Permissions = require('../databases/controllers/permissions.js')
@@ -424,7 +415,11 @@ Commands.userinfo = {
     if (msg.mentions.length === 0) {
       Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
         var msgArray = []
-        var roles = msg.member.roles.map((r) => r.name)
+        var tempRoles = msg.member.roles.sort(function (a, b) { return a.position - b.position }).reverse()
+        var roles = []
+        for (var i in tempRoles) {
+          roles.push(tempRoles[i].name)
+        }
         roles = roles.splice(0, roles.length).join(', ')
         msgArray.push('```')
         msgArray.push('Requested user: ' + msg.author.username + '#' + msg.author.discriminator)
@@ -452,7 +447,11 @@ Commands.userinfo = {
         var msgArray = []
         var guild = msg.guild
         var member = guild.members.find((m) => m.id === user.id)
-        var roles = member.roles.map((r) => r.name)
+        var tempRoles = member.roles.sort(function (a, b) { return a.position - b.position }).reverse()
+        var roles = []
+        for (var i in tempRoles) {
+          roles.push(tempRoles[i].name)
+        }
         roles = roles.splice(0, roles.length).join(', ')
         msgArray.push('Information requested by ' + msg.author.username)
         msgArray.push('```', 'Requested user: ' + user.username + '#' + user.discriminator)
@@ -481,7 +480,6 @@ Commands['join-server'] = {
   name: 'join-server',
   help: "I'll join the server you've requested me to join, as long as the invite is valid and I'm not banned of already in the requested server.",
   aliases: ['joinserver', 'invite'],
-  module: 'default',
   usage: '<bot-mention> <instant-invite>',
   level: 0,
   fn: function (msg, suffix, bot) {
@@ -535,7 +533,6 @@ Commands.kick = {
   name: 'kick',
   help: 'Kick the user(s) out of the server!',
   noDM: true,
-  module: 'default',
   usage: '<user-mention>',
   level: 0,
   fn: function (msg, suffix, bot) {
@@ -569,7 +566,6 @@ Commands.ban = {
   name: 'ban',
   help: 'Swing the banhammer on someone!',
   noDM: true,
-  module: 'default',
   usage: '<user-mention> [days]',
   level: 0,
   fn: function (msg, suffix, bot) {
@@ -606,14 +602,13 @@ Commands.ban = {
 Commands.prefix = {
   name: 'prefix',
   help: "If you, despite reading this have no clue what my prefix is, I'll tell you!",
-  module: 'default',
   timeout: 5,
   level: 0,
   fn: function (msg) {
     var datacontrol = require('../datacontrol')
     datacontrol.customize.prefix(msg).then((prefix) => {
       if (prefix) {
-        msg.channel.sendMessage(`My prefix is ${prefix}`)
+        msg.channel.sendMessage(`My prefix on this server is ${prefix}`)
       } else {
         msg.channel.sendMessage(`My prefix is ${config.settings.prefix}`) // Default prefix, if none is set in customize
       }

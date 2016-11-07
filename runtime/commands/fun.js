@@ -62,7 +62,6 @@ Commands.rip = {
 Commands.fortunecow = {
   name: 'fortunecow',
   help: "I'll get a random fortunecow!",
-  module: 'fun',
   timeout: 20,
   level: 0,
   fn: function (msg) {
@@ -83,17 +82,19 @@ Commands.randomcat = {
   timeout: 10,
   level: 0,
   fn: function (msg) {
-    unirest.get('https://nijikokun-random-cats.p.mashape.com/random')
-      .header('X-Mashape-Key', config.api_keys.mashape)
-      .header('Accept', 'application/json')
-      .end(function (result) {
+    var request = require('request')
+    request('http://random.cat/meow', function (error, response, body) {
+      if (!error && response.statusCode === 200) {
         try {
-          msg.reply(result.body.source)
+          JSON.parse(body)
         } catch (e) {
-          Logger.error(e)
-          msg.reply('Something went wrong, try again later.')
+          msg.channel.sendMessage('The API returned an unconventional response.')
+          return
         }
-      })
+        var cat = JSON.parse(body)
+        msg.channel.sendMessage(cat.file)
+      }
+    })
   }
 }
 
@@ -445,7 +446,7 @@ Commands.meme = {
     var imgflipper = new Imgflipper(config.api_keys.imgflip.username, config.api_keys.imgflip.password)
     imgflipper.generateMeme(meme[memetype], tags[1] ? tags[1] : '', tags[3] ? tags[3] : '', (err, image) => {
       if (err) {
-        msg.reply('Please try again.')
+        msg.reply('Please try again, use `help meme` if you do not know how to use this command.')
       } else {
         var guild = msg.guild
         var user = bot.User
@@ -465,7 +466,6 @@ Commands.magic8ball = {
   name: 'magic8ball',
   help: "I'll make a prediction using a Magic 8 Ball",
   aliases: ['8ball'],
-  module: 'fun',
   timeout: 5,
   level: 0,
   fn: function (msg) {
