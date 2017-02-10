@@ -1,6 +1,7 @@
 var Commands = []
 var Logger = require('../../internal/logger.js').Logger
 var config = require('../../../config.json')
+var Permissions = require('../../databases/controllers/permissions.js')
 
 Commands.hug = {
   name: 'hug',
@@ -46,11 +47,19 @@ Commands.kiss = {
 }
 
 Commands.goodnight = {
-  name: 'goodnght',
+  name: 'goodnight',
   help: 'Say GoodNight !',
+  aliases: ['gn', 'night'],
   level: 0,
   fn: function (msg, suffix, bot) {
-    if(msg.author.id == 155038222794227712)
+
+    if(suffix.length >1)
+    {
+      var msgArray = []
+      msgArray.push('GoodNight / '+ suffix +' !')
+      msg.channel.sendMessage(msgArray.join('\n'))
+    }
+    else if(msg.author.id == 155038222794227712)
     {
       var msgArray = []
       msgArray.push('GoodNight / everyone! '+ msg.author.username +' and I are going to bed now.')
@@ -61,9 +70,50 @@ Commands.goodnight = {
           process.exit(0).catch((e) => Logger.error(e))
         }, 3000)
     }
+    else if(msg.author.id == 66792137647206400 || msg.author.id == 186873040292806656)
+    {
+        msg.reply("gachiGASM Billy says GoodNight gachiGASM")
+    }
     else
     {
-      msg.reply('GoodNight /, Sleep tight!')
+      msg.reply('Sleep already! You\'re so slow! GoodNight /')
+    }
+  }
+}
+
+Commands.goodmorning = {
+  name: 'goodmorning',
+  help: 'Say GoodMorning !',
+  aliases: ['gm', 'morning'],
+  level: 0,
+  fn: function (msg, suffix, bot) {
+
+    if(suffix.length >1)
+    {
+      var msgArray = []
+      msgArray.push('GoodMorning / '+ suffix +' !')
+      msg.channel.sendMessage(msgArray.join('\n'))
+    }
+    else if(msg.author.id == 155038222794227712)
+    {
+      var msgArray = []
+      msgArray.push(': We have finally awoken, that was slow, wasn\'t it?\nGoodMorning / everyone!')
+      msg.channel.sendMessage(msgArray.join('\n'))
+    }
+    else if(msg.author.id == 66792137647206400 || msg.author.id == 186873040292806656)
+    {
+        msg.reply("gachiGASM Billy says GoodMorning gachiGASM")
+    }
+    else
+    {
+      if(Math.random()*2>1)
+      {
+          msg.reply('You finally woke up? you\'re too slow!\nGoodMorning /')
+      }
+      else
+      {
+          msg.reply('GoodMorning /\nWanna race? I won\'t lose!')
+      }
     }
   }
 }
@@ -75,14 +125,17 @@ Commands.sjoin = {
   hidden: true,
   level: 0,
   fn: function (msg, suffix, bot){
-    var VC = msg.member.getVoiceChannel()
-    if (VC) {
-      VC.join()
-    }
-    msg.channel.fetchMessages(1).then((result) => {
-      bot.Messages.deleteMessages(result.messages)
-    }).catch((error) => {
-      Logger.error(error)
+    Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+      var voiceCheck = bot.VoiceConnections.find((r) => r.voiceConnection.guild.id === msg.guild.id)
+      var VC = msg.member.getVoiceChannel()
+      if (VC && (!voiceCheck || level >1)) {
+        VC.join()
+      }
+      msg.channel.fetchMessages(1).then((result) => {
+        bot.Messages.deleteMessages(result.messages)
+      }).catch((error) => {
+        Logger.error(error)
+      })
     })
   }
 }
@@ -92,7 +145,7 @@ Commands.parrot = {
   help: 'remove parrot command message for nightbot',
   aliases:['p'],
   hidden: true,
-  level: 0,
+  level: 1,
   fn: function (msg, suffix, bot){
     msg.channel.fetchMessages(1).then((result) => {
       bot.Messages.deleteMessages(result.messages)
@@ -125,7 +178,7 @@ Commands.bj = {
         msg.reply("Not Here!")
       }
     }
-    else if(msg.author.id == 66792137647206400)
+    else if(msg.author.id == 66792137647206400 || msg.author.id == 186873040292806656)
     {
         msg.reply("pls, go ask Billy gachiPls")
     }
@@ -136,5 +189,89 @@ Commands.bj = {
   }
 }
 
+Commands.setnick = {
+  name: 'setnick',
+  help: 'change the nickname on the current server',
+  hidden: true,
+  level: 5,
+  fn: function (msg, suffix, bot){
+    var user = bot.User
+    var member = msg.guild.members.find((m) => m.id === user.id)
+    member.setNickname(suffix)
+  }
+}
+Commands.channelinfo = {
+  name: 'channelinfo',
+  level: 0,
+  fn: function (msg)
+  {
+    msg.channel.sendMessage(msg.channel.id)
+    var user = msg.author
+    var guild = msg.guild
+    var userPerms = user.permissionsFor(guild)
+    var chp = user.permissionsFor(msg.channel)
+    msg.channel.sendMessage('server ' + userPerms.Text.MANAGE_MESSAGES)
+    msg.channel.sendMessage('channel ' + chp.Text.MANAGE_MESSAGES)
+}
+}
+
+
+Commands.autoDelete = {
+  name: 'autoDelete',
+  help: 'autodelete your own message after a timeout',
+  aliases: ['d'],
+  usage: 'timout suffix',
+  level: 0,
+  fn: function (msg, suffix, bot){
+    if(isNaN(suffix[0]))
+    {
+
+
+      msg.channel.fetchMessages(1).then((result) => {
+        bot.Messages.deleteMessages(result.messages)
+      }).catch((error) => {
+        Logger.error(error)
+      })
+
+      msg.channel.sendMessage('Your first parameter is not a number!').then((m) => {
+          setTimeout(() => {
+            m.delete().catch((e) => Logger.error(e))
+          }, 2000)
+      })
+    }
+    else
+    {
+      var x = suffix.indexOf(" ");
+      var t = suffix.substring(0, x);
+      if(x==0) t = suffix
+      if(!isNaN(t))
+      {
+        msg.channel.fetchMessages(1).then((result) => {
+          setTimeout(() => {
+              bot.Messages.deleteMessages(result.messages)
+          }, t*1000)
+        }).catch((error) => {
+          Logger.error(error)
+        })
+      }
+      else
+      {
+
+
+        msg.channel.fetchMessages(1).then((result) => {
+          bot.Messages.deleteMessages(result.messages)
+        }).catch((error) => {
+          Logger.error(error)
+        })
+
+        msg.channel.sendMessage('Your first parameter is not a number!').then((m) => {
+            setTimeout(() => {
+              m.delete().catch((e) => Logger.error(e))
+            }, 2000)
+        })
+      }
+    }
+  }
+}
 
 exports.Commands = Commands

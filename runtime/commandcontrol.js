@@ -50,17 +50,16 @@ exports.helpHandle = function (msg, suffix) {
       if (commands[index].hidden || commands[index].level === 'master') {
         continue
       } else {
-        cmdone.push(commands[index].name + ' = "' + commands[index].help + '"')
+        cmdone.push(commands[index].name + ' [' + commands[index].level + '] = "' + commands[index].help + '"')
       }
     }
     var cmdtwo = cmdone.splice(0, cmdone.length / 2)
     msgArray.push('**Available commands:** \n')
-    msgArray.push('```ini')
+    msgArray.push('```cpp')
     msgArray.push(cmdone.sort().join('\n') + '\n')
     msgArray.push('```')
-    msgArraytwo.push('```ini')
+    msgArraytwo.push('```cpp')
     msgArraytwo.push(cmdtwo.sort().join('\n') + '\n')
-    msgArraytwo.push('For questions: https://discord.gg/0cFoiR5QVh5LZlQO')
     msgArraytwo.push('```')
     msg.author.openDM().then((y) => {
       if (!msg.isPrivate) {

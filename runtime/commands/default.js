@@ -22,7 +22,7 @@ Commands.say = {
   help: 'Repeat after me.',
   aliases: ['echo', 'repeat'],
   timeout: 10,
-  level: 0,
+  level: 1,
   fn: function (msg, suffix) {
     var re = /(discord(\.gg|app\.com\/invite)\/([\w]{16}|([\w]+-?){3}))/
     if (msg.mentions.length >= 5) {
@@ -48,9 +48,11 @@ Commands.purge = {
     var user = msg.author
     var userPerms = user.permissionsFor(guild)
     var botPerms = bot.User.permissionsFor(guild)
-    if (!userPerms.Text.MANAGE_MESSAGES) {
+    var userPermsCh = user.permissionsFor(msg.channel)
+    var botPermsCh = bot.User.permissionsFor(msg.channel)
+    if (!userPerms.Text.MANAGE_MESSAGES && !userPermsCh.Text.MANAGE_MESSAGES ) {
       msg.reply('You do not have the permission to manage messages!')
-    } else if (!botPerms.Text.MANAGE_MESSAGES) {
+    } else if (!botPerms.Text.MANAGE_MESSAGES && !botPermsCh.Text.MANAGE_MESSAGES) {
       msg.reply('I do not have `Manage Messages` permission!')
     } else {
       if (!suffix || isNaN(suffix) || suffix > 100 || suffix < 0) {

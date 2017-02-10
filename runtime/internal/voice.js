@@ -3,6 +3,7 @@ var status = {}
 var requestLink = {}
 var splitLink = {}
 var temp
+var tempData
 var DL = require('ytdl-core')
 var YT = require('youtube-dl')
 var fs = require('fs')
@@ -257,6 +258,8 @@ function next (msg, suffix, bot) {
         var vol = (list[msg.guild.id].volume !== undefined) ? list[msg.guild.id].volume : 100
         connection.voiceConnection.getEncoder().setVolume(vol)
         encoder.once('end', () => {
+          if(list[msg.guild.id] !== undefined)
+          {
           msg.channel.sendMessage('**' + list[msg.guild.id].info[0] + '** has ended!').then((m) => {
             if (Config.settings.autodeletemsg) {
               setTimeout(() => {
@@ -288,7 +291,9 @@ function next (msg, suffix, bot) {
             })
             //connection.voiceConnection.disconnect()
           }
-        })
+        }
+        }
+      )
       }
     })
 }
@@ -323,10 +328,10 @@ exports.voteSkip = function (msg, bot) {
     msg.reply('No connection.')
   } else if (list[msg.guild.id] === undefined) {
     msg.reply('Try requesting a song first before voting to skip.')
-  } else if (msg.member.getVoiceChannel().id !== connect[0].voiceConnection.channel.id) {
+  } else if (msg.member.getVoiceChannel() && msg.member.getVoiceChannel().id !== connect[0].voiceConnection.channel.id) {
     msg.reply("You're not allowed to vote because you're not in the voice channel.")
   } else {
-    var count = Math.round((connect[0].voiceConnection.channel.members.length - 2) / 2)
+    var count = Math.round((connect[0].voiceConnection.channel.members.length - 1) / 2)
     if (list[msg.guild.id].skips.users.indexOf(msg.author.id) > -1) {
       msg.reply('You already voted to skip this song!')
     } else {
@@ -336,7 +341,8 @@ exports.voteSkip = function (msg, bot) {
         msg.channel.sendMessage('Voteskip passed, next song coming up!')
         exports.skip(msg, null, bot)
       } else {
-        msg.reply(`Voteskip registered, ${count - list[msg.guild.id].skips.count} more votes needed for the vote to pass.`)
+        msg.reply(`Voteskip registered, ${count - list[msg.guild.id].skips.count} more votes needed for the vote to pass.
+          (${list[msg.guild.id].skips.count} / ${count}) of ${connect[0].voiceConnection.channel.members.length}`)
       }
     }
   }
@@ -420,7 +426,7 @@ exports.fetchList = function (msg) {
   })
 }
 
-exports.request = function (msg, suffix, bot) {
+exports.request = function (msg, suffix, bot, level, listIndex) {
   var connect = bot.VoiceConnections
     .filter(function (connection) {
       return connection.voiceConnection.guild.id === msg.guild.id
@@ -428,6 +434,14 @@ exports.request = function (msg, suffix, bot) {
   if (connect.length < 1) {
     msg.channel.sendMessage("I'm not connected to any voice channel in this server, try initializing me with the command `voice` first!")
     return
+  }
+  if (!msg.member.getVoiceChannel() || msg.member.getVoiceChannel().id !== connect[0].voiceConnection.channel.id)
+  {
+    if(level < 2)
+    {
+      msg.reply("You can't request a song because you're not in the voice channel.")
+      return
+    }
   }
   var link = require('url').parse(suffix)
   var query = require('querystring').parse(link.query)
@@ -469,12 +483,65 @@ exports.request = function (msg, suffix, bot) {
         Logger.error('Playlist failiure, ' + err)
         return
       } else if (data) {
-        temp = data.items
-        safeLoop(msg, suffix, bot)
+        tempData = data
+        var nextPage = data.nextPageToken
+        var ind = 0
+        for(var ii = 0; ii < listIndex; ii++)
+        {
+          nextPage = data.nextPageToken
+          if(nextPage === undefined)
+          {
+            ii = listIndex
+          }
+          else
+          {
+            msg.channel.sendMessage(nextPage)
+            new Promise(function(resolve, reject){
+              api.playlistItems.list({
+                part: 'snippet',
+                pageToken: nextPage,
+                maxResults: 50,
+                playlistId: query.list
+              }, function (erro, data2) {
+                if (erro) {
+                  msg.channel.sendMessage('Something went wrong while requesting information about this playlist.').then((m) => {
+                    if (Config.settings.autodeletemsg) {
+                      setTimeout(() => {
+                        m.delete().catch((e) => Logger.error(e))
+                      }, Config.settings.deleteTimeout)
+                    }
+                  })
+                  Logger.error('Playlist failiure, ' + erro)
+                  return reject(-1)
+                }
+                else if (data2) {
+                  tempData=data2
+                  return resolve(0)
+                }
+              })
+            }).then((retu) => {
+              ind++
+              if(retu ==-1){
+                return
+              }
+              if(ind == listIndex)
+              {
+                temp = tempData.items
+                safeLoop(msg, suffix, bot, listIndex)
+              }
+              })
+
+          }
+        }
+        if(listIndex == 0)
+        {
+          temp = tempData.items
+          safeLoop(msg, suffix, bot, listIndex)
+        }
       }
     })
   } else {
-    fetch(suffix, msg).then((r) => {
+    fetch(suffix, msg, listIndex).then((r) => {
       msg.channel.sendMessage(`Added **${r.title}** to the playlist.`).then((m) => {
         if (Config.settings.autodeletemsg) {
           setTimeout(() => {
@@ -511,7 +578,19 @@ exports.leaveRequired = function (bot, guild) {
   }
 }
 
-function fetch (v, msg, stats) {
+exports.removeAt = function (msg, index, bot) {
+  var connect = bot.VoiceConnections
+    .filter(function (connection) {
+      return connection.voiceConnection.guild.id === msg.guild.id
+    })
+  if (connect.length < 1) {
+    msg.reply('No connection.')
+    return
+  }
+  fetchRemove(msg, index)
+}
+
+function fetch (v, msg, listIndex, stats) {
   return new Promise(function (resolve, reject) {
     var x = 0
     var y = 1
@@ -551,9 +630,18 @@ function fetch (v, msg, stats) {
             })
           }
         } else {
-          list[msg.guild.id].link.push(i.url)
-          list[msg.guild.id].info.push(i.title)
-          list[msg.guild.id].requester.push(msg.author.username)
+          if(listIndex <1 || listIndex > list[msg.guild.id].link.length-1)
+          {
+            list[msg.guild.id].link.push(i.url)
+            list[msg.guild.id].info.push(i.title)
+            list[msg.guild.id].requester.push(msg.author.username)
+          }
+          else
+          {
+            list[msg.guild.id].link.splice(listIndex, 0, i.url)
+            list[msg.guild.id].info.splice(listIndex, 0, i.title)
+            list[msg.guild.id].requester.splice(listIndex, 0, msg.author.username)
+          }
           if (y > x) {
             return resolve({
               title: i.title,
@@ -633,4 +721,28 @@ function DLFetch (video, msg) {
       }
     })
   })
+}
+
+function fetchRemove (msg, index) {
+    if (!(list[msg.guild.id] === undefined || list[msg.guild.id].link.length < 1))
+    {
+      if(!(index <1 || index > list[msg.guild.id].link.length-1))
+      {
+        var songInfo = list[msg.guild.id].info[index]
+
+        list[msg.guild.id].link.splice(index, 1)
+        list[msg.guild.id].info.splice(index, 1)
+        list[msg.guild.id].requester.splice(index, 1)
+
+        msg.channel.sendMessage('Removed **' + songInfo + '** from index ' + index + '.')
+      }
+      else
+      {
+        msg.reply('Index out of bounds.')
+      }
+    }
+    else
+    {
+      msg.reply('Try requesting a song first before removing.')
+    }
 }

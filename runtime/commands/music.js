@@ -1,5 +1,6 @@
 'use strict'
 var v = require('../internal/voice.js')
+var Permissions = require('../databases/controllers/permissions.js')
 var Commands = []
 
 Commands.music = {
@@ -48,6 +49,7 @@ Commands.shuffle = {
 Commands['leave-voice'] = {
   name: 'leave-voice',
   help: "I'll leave the current voice channel.",
+  aliases: ['lv'],
   noDM: true,
   level: 3,
   fn: function (msg, suffix, bot) {
@@ -72,9 +74,8 @@ Commands.skip = {
   noDM: true,
   level: 0,
   fn: function (msg, suffix, bot) {
-    var Permissions = require('../databases/controllers/permissions.js')
         Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
-          if(level)
+          if(level>1)
           {
             v.skip(msg, suffix, bot)
             msg.channel.sendMessage('Skipped.').then((m) => {
@@ -134,7 +135,7 @@ Commands.voice = {
   aliases: ['join-voice', 'join'],
   noDM: true,
   timeout: 10,
-  level: 1,
+  level: 0,
   fn: function (msg, suffix, bot) {
     v.join(msg, suffix, bot)
   }
@@ -149,13 +150,77 @@ Commands.request = {
   timeout: 0,
   level: 0,
   fn: function (msg, suffix, bot) {
-    var u = require('url').parse(suffix)
-    if (u.host === null) {
-      v.request(msg, 'ytsearch:' + suffix, bot)
-    } else {
-      v.request(msg, suffix, bot)
+
+    Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+      var u = require('url').parse(suffix)
+      if (u.host === null) {
+        v.request(msg, 'ytsearch:' + suffix, bot, level, 0)
+      } else {
+        v.request(msg, suffix, bot, level, 0)
+      }
+    })
+  }
+}
+
+Commands.requestat = {
+  name: 'requestat',
+  help: 'Add a song in a specific index of the list',
+  aliases: ['ra', 'spierdalaj'],
+  noDM: true,
+  usage: 'index link',
+  timeout: 0,
+  level: 2,
+  fn: function (msg, suffix, bot)
+  {
+    if (isNaN(suffix[0])) {
+      msg.reply('Your first parameter is not a number!')
+    }
+    else
+    {
+      var x = suffix.indexOf(" ");
+      var i = suffix.substring(0, x);
+      if(!isNaN(i))
+      {
+        var str = suffix.substring(x+1);
+
+        Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+          var u = require('url').parse(str)
+          if (u.host === null) {
+            v.request(msg, 'ytsearch:' + str, bot, level, i)
+          } else {
+            v.request(msg, str, bot, level, i)
+          }
+        })
+
+      }
+      else
+      {
+        msg.reply('Your first parameter is not a number!')
+      }
     }
   }
+}
+
+Commands.removeat = {
+  name: 'removeat',
+  help: 'Remove a song from a specific index of the list',
+  aliases: ['rem'],
+  noDM: true,
+  usage: 'index',
+  timeout: 0,
+  level: 2,
+  fn: function (msg, suffix, bot)
+  {
+    if(isNaN(suffix))
+    {
+      msg.reply('The index is not a number!')
+    }
+    else
+    {
+      v.removeAt(msg, suffix, bot)
+    }
+  }
+
 }
 
 exports.Commands = Commands

@@ -25,6 +25,7 @@ var Config
 var restarted = false
 
 Logger.info('Initializing...')
+Logger.info('Logger Push')
 
 if (argv.shardmode && !isNaN(argv.shardid) && !isNaN(argv.shardcount)) {
   Logger.info('Starting in ShardMode, this is shard ' + argv.shardid)
@@ -204,7 +205,29 @@ bot.Dispatcher.on(Event.GUILD_MEMBER_ADD, function (s) {
     if (r === 'on' || r === 'channel') {
       datacontrol.customize.reply(s, 'welcomeMessage').then((x) => {
         if (x === null || x === 'default') {
-          s.guild.generalChannel.sendMessage(`Welcome ${s.member.username} to ${s.guild.name}!`)
+          if(s.guild.id == 98922706317103104)
+          {
+              s.guild.textChannels.forEach(function(ch){
+                if(ch.id == 186873358636285952)
+                {
+                  var suffix = -1 + ' anti'
+                  suffix = suffix.split(' ')
+                  ch.sendMessage(`Welcome `+s.member.mention+` to the server!`).then((m) => datacontrol.permissions.adjustLevel(m, m.mentions, parseFloat(suffix[0]), m.mention_roles).then(function () {
+                    msg.channel.sendMessage('Alright! The permission levels have been set successfully!')
+                  }).catch(function (err) {
+                    msg.channel.sendMessage('Help! Something went wrong!')
+                    Logger.error(err)
+                  }))
+                }
+              })
+
+
+
+          }
+          else
+          {
+            s.guild.generalChannel.sendMessage(`Welcome ${s.member.username} to ${s.guild.name}!`)
+          }
         } else {
           s.guild.generalChannel.sendMessage(x.replace(/%user/g, s.member.mention).replace(/%server/g, s.guild.name))
         }
@@ -252,14 +275,8 @@ bot.Dispatcher.on(Event.PRESENCE_MEMBER_INFO_UPDATE, (user) => {
 
 bot.Dispatcher.on(Event.DISCONNECTED, function (e) {
   Logger.error('Disconnected from the Discord gateway: ' + e.error)
-  if (!restarted) {
-    restarted = true
-    Logger.info('Trying to login again...')
-    start()
-  } else {
-    Logger.warn('Something happened while reconnecting. Not trying to login again, exiting...')
-    process.exit(1)
-  }
+  Logger.info('Trying to login again...')
+  start()
 })
 
 process.on('unhandledRejection', (reason, p) => {
