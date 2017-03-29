@@ -264,7 +264,7 @@ function next (msg, suffix, bot) {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
         if (list[msg.guild.id].link.length === 0) {
           delete list[msg.guild.id]
-          msg.channel.sendMessage('Playlist has ended, leaving voice.')
+          msg.channel.sendMessage('Playlist has ended.')
           //connection.voiceConnection.disconnect()
           return
         }
