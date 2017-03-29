@@ -4,6 +4,9 @@ let compiler = new TagScript()
 var Config = require('../../config.json')
 var Dash = require('rethinkdbdash')
 var r = new Dash({
+  user: Config.database.user,
+  password: Config.database.password,
+  silent: true,
   servers: [{
     host: Config.database.host,
     port: Config.database.port
@@ -14,12 +17,12 @@ Commands.tag = {
   name: 'tag',
   help: 'Tags!',
   level: 0,
-  usage: '<create/delete> <tagname> [content] OR <tagname>',
+  usage: '<create/edit/delete/owner/raw/list/random> <tagname> [content] OR <tagname>',
   aliases: ['t'],
   fn: function (msg, suffix, bot) {
     var index = suffix.split(' ')
     if (suffix) {
-      if (index[0].toLowerCase() === 'create') {
+      if (index[1] !== undefined && index[0].toLowerCase() === 'create') {
         if (Config.permissions.master.indexOf(msg.author.id) === -1) {
           var re = /(discord(\.gg|app\.com\/invite)\/([\w]{16}|([\w]+-?){3}))/
           if (msg.mentions.length >= 5) {
@@ -47,7 +50,7 @@ Commands.tag = {
             msg.channel.sendMessage('Something went wrong.')
           }
         })
-      } else if (index[0] === 'owner') {
+      } else if (index[1] !== undefined && index[0] === 'owner') {
         r.db('Discord').table('Tags').get(index[1].toLowerCase()).run().then((g) => {
           if (g === null) {
             msg.channel.sendMessage('This tag does not exist.')
@@ -86,7 +89,7 @@ Commands.tag = {
             }
           }
         })
-      } else if (index[0].toLowerCase() === 'delete') {
+      } else if (index[1] !== undefined && index[0].toLowerCase() === 'delete') {
         r.db('Discord').table('Tags').get(index[1].toLowerCase()).run().then((g) => {
           if (g === null) {
             msg.channel.sendMessage('This tag does not exist.')
@@ -104,13 +107,48 @@ Commands.tag = {
             }
           }
         })
-      } else if (index[0].toLowerCase() === 'raw') {
+      } else if (index[1] !== undefined && index[0].toLowerCase() === 'raw') {
         r.db('Discord').table('Tags').get(index[1].toLowerCase()).run().then((g) => {
           if (g === null) {
             msg.channel.sendMessage('This tag does not exist.')
           } else {
             var cp = g.content.replace('@everyone', '@every\u200Bone').replace('@here', '@he\u200Bre')
             msg.channel.sendMessage('`' + cp + '`')
+          }
+        })
+      } else if (index[0].toLowerCase() === 'list') {
+        var author = msg.author
+        if (index[1] && msg.mentions.length === 1) {
+          author = msg.mentions[0]
+        }
+        r.db('Discord').table('Tags').filter({owner: author.id}).count().run().then((c) => {
+          if (c === 0) {
+            msg.channel.sendMessage(`${msg.author.id === author.id ? "You don't" : 'This user does not'} have any tags!`)
+          } else {
+            var tagsArray = []
+            r.db('Discord').table('Tags').filter({owner: author.id}).run().then((tags) => {
+              for (var i in tags) {
+                tagsArray.push(tags[i].id)
+              }
+              if (tagsArray.join(', ').length > 1950) {
+                msg.channel.sendMessage(`The length of ${msg.author.id === author.id ? 'your' : "this user's"} tag list exceeds 2000 characters.`)
+                return
+              }
+              msg.channel.sendMessage(`Found ${c} tags for **${author.username}**:\n${tagsArray.join(', ')}`)
+            })
+          }
+        })
+      } else if (index[0].toLowerCase() === 'random') {
+        r.db('Discord').table('Tags').count().run().then((c) => {
+          if (c === 0) {
+            msg.channel.sendMessage('No tags found in the database.')
+          } else {
+            r.db('Discord').table('Tags').sample(1).run().then((tag) => {
+              var msgArray = []
+              msgArray.push(`Tag: **${tag[0].id}**`)
+              msgArray.push(tag[0].content)
+              msg.channel.sendMessage(msgArray.join('\n'))
+            })
           }
         })
       } else {

@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "Shimakaze-chan",
-  "version": "4.0.0",
+  "version": "4.2.1",
   "description": "Shimakaze Discord Bot",
   "main": "shima.js",
   "maintainers": [
@@ -12,46 +12,51 @@
   "scripts": {
     "prestart": "npm update",
     "test": "standard & eslint **",
-    "start": "node DougBot.js"
+    "start": "node shima.js",
+    "dbcreate": "node runtime/internal/dbcreate.js",
+    "snyk-protect": "snyk protect"
   },
   "author": {
-    "name": "nicex000"
+  "name": "nicex000"
   },
   "bugs": {
     "url": "https://github.com/TheSharks/WildBeast/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheSharks/WildBeast.git"
+    "url": "git+https://github.com/nicex000/ShimakazeBot.git"
   },
   "engines": {
-    "node": "4.x.x - 5.10.1",
+    "node": "4.x.x - 6.x.x",
     "npm": ">=3.x.x"
   },
   "license": "GPL-3.0",
   "dependencies": {
-    "cleverbot-node": "^0.2.2",
-    "discordie": "^0.9.0",
+    "bugsnag": "^1.9.0",
+    "cleverbot.io": "^1.0.4",
+    "discordie": "^0.11.0",
     "imgflipper": "^1.0.1",
     "leetspeak": "0.0.1",
     "minimist": "^1.2.0",
-    "ora": "^0.3.0",
     "prompt": "^1.0.0",
     "request": "^2.72.0",
     "require-directory": "^2.1.1",
     "rethinkdbdash": "^2.3.23",
     "semver": "^5.1.0",
+    "snyk": "^1.24.5",
     "tagscript": "github:guscaplan/tagscript",
     "unirest": "^0.5.0",
-    "winston": "^2.2.0",
+    "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.0.1",
+    "winston-elasticsearch": "^0.5.0",
     "xml2js": "^0.4.16",
     "youtube-api": "^2.0.2",
     "youtube-dl": "^1.11.1",
-    "ytdl-core": "^0.7.15"
+    "ytdl-core": "^0.10.0"
   },
   "devDependencies": {
-    "eslint": "^3.0.0",
+    "eslint": "^3.14.0",
     "standard": "^8.1.0"
-  }
+  },
+  "snyk": true
 }

@@ -22,41 +22,52 @@ exports.checkLevel = function (msg, user, roles) {
       return resolve(2)
     } else if (Config.permissions.level3.indexOf(user) > -1) {
       return resolve(3)
-    } else if (msg.isPrivate || !msg.guild) {
-      return resolve(0)
-    }
-    getDatabaseDocument(msg.guild).then((d) => {
-      if (user === d.superUser) {
-        return resolve(4)
-      }
-      var level = d.perms.standard.everyone
-      if (roles) {
-        for (var r of roles) {
-          if (d.perms.roles.level1.indexOf(r.id) > -1) {
-            level = (level > 1) ? level : (level !== -1) ? 1 : -1
-          } else if (d.perms.roles.level2.indexOf(r.id) > -1) {
-            level = (level > 1) ? level : (level !== -1) ? 2 : -1
-          } else if (d.perms.roles.level3.indexOf(r.id) > -1) {
-            level = (level > 1) ? level : (level !== -1) ? 3 : -1
-          } else if (d.perms.roles.negative.indexOf(r.id) > -1) {
-            level = -1
+    } else {
+      r.db('Discord').table('Users').get(user).then(u => {
+        if (u !== null) {
+          if (u.banned) {
+            return resolve(-1)
+          } else if (msg.isPrivate || !msg.guild) {
+            return resolve(0)
+          } else {
+            getDatabaseDocument(msg.guild).then((d) => {
+              if (user === d.superUser) {
+                return resolve(4)
+              }
+              var level = d.perms.standard.everyone
+              if (roles) {
+                for (var r of roles) {
+                  if (d.perms.roles.level1.indexOf(r.id) > -1) {
+                    level = (level > 1) ? level : (level !== -1) ? 1 : -1
+                  } else if (d.perms.roles.level2.indexOf(r.id) > -1) {
+                    level = (level > 1) ? level : (level !== -1) ? 2 : -1
+                  } else if (d.perms.roles.level3.indexOf(r.id) > -1) {
+                    level = (level > 1) ? level : (level !== -1) ? 3 : -1
+                  } else if (d.perms.roles.negative.indexOf(r.id) > -1) {
+                    level = -1
+                  }
+                }
+              }
+              if (d.perms.standard.level1.indexOf(user) > -1) {
+                level = (level > 1) ? level : (level !== -1) ? 1 : -1
+              } else if (d.perms.standard.level2.indexOf(user) > -1) {
+                level = (level > 1) ? level : (level !== -1) ? 2 : -1
+              } else if (d.perms.standard.level3.indexOf(user) > -1) {
+                level = (level > 1) ? level : (level !== -1) ? 3 : -1
+              } else if (d.perms.standard.negative.indexOf(user) > -1) {
+                level = -1
+              }
+              return resolve(level)
+            }).catch((e) => {
+              initialize(msg.guild)
+              reject(e)
+            })
           }
+        } else {
+          return resolve(0)
         }
-      }
-      if (d.perms.standard.level1.indexOf(user) > -1) {
-        level = (level > 1) ? level : (level !== -1) ? 1 : -1
-      } else if (d.perms.standard.level2.indexOf(user) > -1) {
-        level = (level > 1) ? level : (level !== -1) ? 2 : -1
-      } else if (d.perms.standard.level3.indexOf(user) > -1) {
-        level = (level > 1) ? level : (level !== -1) ? 3 : -1
-      } else if (d.perms.standard.negative.indexOf(user) > -1) {
-        level = -1
-      }
-      return resolve(level)
-    }).catch((e) => {
-      initialize(msg.guild)
-      reject(e)
-    })
+      })
+    }
   })
 }
 
@@ -92,7 +103,7 @@ exports.adjustLevel = function (msg, users, level, roles) {
         d.perms.standard.negative.push.apply(d.perms.standard.negative, userIds)
       }
 
-      r.db('Discord').table('Guilds').update(d).run().then(() => {
+      r.db('Discord').table('Guilds').get(msg.guild.id).update(d).run().then(() => {
         resolve('Done!')
       }).catch((e) => {
         reject(e)
@@ -106,19 +117,19 @@ exports.adjustLevel = function (msg, users, level, roles) {
 
 exports.restore = function (guild) {
   return new Promise(function (resolve, reject) {
-      getDatabaseDocument(guild).then((d) => {
-          r.db('Discord').table('Guilds').delete(d).run().then(() => {
-              initialize(guild).then(() => {
-                  resolve('Done!')
-              }).catch((e) => {
-                  reject(e)
-              })
-          }).catch((e) => {
-              reject(e)
-          })
-      }).catch((e) => {
+    getDatabaseDocument(guild).then(() => {
+      r.db('Discord').table('Guilds').get(guild.id).delete().run().then(() => {
+        initialize(guild).then(() => {
+          resolve('Done!')
+        }).catch((e) => {
           reject(e)
+        })
+      }).catch((e) => {
+        reject(e)
       })
+    }).catch((e) => {
+      reject(e)
+    })
   })
 }
 
@@ -144,7 +155,7 @@ exports.adjustNSFW = function (msg, what) {
             resolve(1)
           } else {
             d.perms.nsfw.push(msg.channel.id.toString())
-            r.db('Discord').table('Guilds').update(d).run().then(() => {
+            r.db('Discord').table('Guilds').get(msg.guild.id).update(d).run().then(() => {
               resolve(1)
             }).catch((e) => {
               Logger.error(e)
@@ -157,11 +168,11 @@ exports.adjustNSFW = function (msg, what) {
         getDatabaseDocument(msg.guild).then((d) => {
           if (d.perms.nsfw.indexOf(msg.channel.id) > -1) {
             d.perms.nsfw.splice(d.perms.nsfw.indexOf(msg.channel.id), 1)
-              r.db('Discord').table('Guilds').update(d).run().then(() => {
-                resolve(0)
+            r.db('Discord').table('Guilds').get(msg.guild.id).update(d).run().then(() => {
+              resolve(0)
             }).catch((e) => {
-                Logger.error(e)
-                reject(e)
+              Logger.error(e)
+              reject(e)
             })
           } else {
             resolve(0)
@@ -172,6 +183,17 @@ exports.adjustNSFW = function (msg, what) {
         reject('Unknown option')
         break
     }
+  })
+}
+
+exports.updateGuildOwner = function (guild) {
+  return new Promise(function (resolve, reject) {
+    getDatabaseDocument(guild).then(d => {
+      d.superUser = guild.owner.id
+      r.db('Discord').table('Guilds').get(guild.id).update(d).run().then(() => {
+        resolve(true)
+      })
+    }).catch((e) => reject(e))
   })
 }
 
@@ -206,7 +228,7 @@ function initialize (guild) {
       },
       superUser: guild.owner_id
     }
-      r.db('Discord').table('Guilds').insert(doc).run().then(() => {
+    r.db('Discord').table('Guilds').insert(doc).run().then(() => {
       resolve('ok')
     }).catch((e) => {
       Logger.error(e)

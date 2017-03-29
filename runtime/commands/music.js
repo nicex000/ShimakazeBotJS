@@ -1,6 +1,6 @@
 'use strict'
 var v = require('../internal/voice.js')
-var Permissions = require('../databases/controllers/permissions.js')
+var checkLevel = require('../databases/controllers/permissions.js').checkLevel
 var Commands = []
 
 Commands.music = {
@@ -16,12 +16,17 @@ Commands.music = {
 
 Commands.volume = {
   name: 'volume',
-  help: "I'll change my volume!",
+  help: "I'll change my volume or return the current volume if you don't provide a number!",
+  usage: '<nothing/number>',
   aliases: ['vol'],
   noDM: true,
   level: 0,
   fn: function (msg, suffix, bot) {
-    v.volume(msg, suffix, bot)
+    v.volume(msg, suffix, bot).then(v => {
+      msg.channel.sendMessage(v)
+    }).catch(err => {
+      msg.channel.sendMessage(err)
+    })
   }
 }
 
@@ -40,8 +45,8 @@ Commands.shuffle = {
   help: 'Shuffle the current playlist.',
   noDM: true,
   level: 0,
-  fn: function (msg) {
-    v.shuffle(msg)
+  fn: function (msg, suffix, bot) {
+    v.shuffle(msg, bot)
     msg.reply('Playlist shuffled')
   }
 }
@@ -74,7 +79,7 @@ Commands.skip = {
   noDM: true,
   level: 0,
   fn: function (msg, suffix, bot) {
-        Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+    checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
           if(level>1)
           {
             v.skip(msg, suffix, bot)
@@ -102,30 +107,59 @@ Commands.skip = {
 
 Commands.playlist = {
   name: 'playlist',
-  help: "I'll fetch you the playlist I'm currently playing!",
+  help: "Use delete and a song number to remove it from the list else I will fetch you the playlist I'm currently playing!",
+  usage: '<clear/delete/remove> <number>',
   aliases: ['list'],
   noDM: true,
-  timeout: 10,
+  timeout: 5,
   level: 0,
-  fn: function (msg) {
-    v.fetchList(msg).then((r) => {
-      var arr = []
-      arr.push('Now playing: **' + r.info[0] + '** \n')
-      for (var i = 1; i < r.info.length; i++) {
-        arr.push((i + 1) + '. **' + r.info[i] + '** Requested by ' + r.requester[i])
-        if (i === 9) {
-          arr.push('And about ' + (r.info.length - 10) + ' more songs.')
-          break
-        }
+  fn: function (msg, suffix, bot) {
+    suffix = suffix.toLowerCase().split(' ')
+    var connect = bot.VoiceConnections.find(v => v.voiceConnection.guild.id === msg.guild.id)
+    if (connect) {
+      if (suffix[0] !== undefined && ['clear', 'delete', 'remove'].indexOf(suffix[0]) > -1) {
+        checkLevel(msg, msg.author.id, msg.member.roles).then(x => {
+          if (x >= 2) {
+            if (suffix[0] === 'clear') {
+              v.deleteFromPlaylist(msg, 'all').then(r => {
+                msg.channel.sendMessage(r)
+              }).catch(err => {
+                msg.channel.sendMessage(err)
+              })
+            } else {
+              v.deleteFromPlaylist(msg, (suffix[1])).then(r => {
+                msg.channel.sendMessage(`**${r}** has been removed from the playlist.`)
+              }).catch(err => {
+                msg.channel.sendMessage(err)
+              })
+            }
+          } else {
+            msg.channel.sendMessage('You do not have the required level for this subcommand.')
+          }
+        })
+      } else {
+        v.fetchList(msg).then((r) => {
+          var arr = []
+          arr.push('Now playing: **' + r.info[0] + '** Requested by *' + r.requester[0] + '* \n')
+          for (var i = 1; i < r.info.length; i++) {
+            arr.push((i) + '. **' + r.info[i] + '** Requested by ' + r.requester[i])
+            if (i === 9) {
+              if (r.info.length - 10 !== 0) arr.push('And about ' + (r.info.length - 10) + ' more songs.')
+              break
+            }
+          }
+          msg.channel.sendMessage(arr.join('\n')).then((m) => {
+            setTimeout(() => {
+              m.delete()
+            }, 30000)
+          })
+        }).catch(() => {
+          msg.channel.sendMessage("It appears that there aren't any songs in the current queue.")
+        })
       }
-      msg.channel.sendMessage(arr.join('\n')).then((m) => {
-        setTimeout(() => {
-          m.delete()
-        }, 15000)
-      })
-    }).catch(() => {
-      msg.channel.sendMessage("It appears that there aren't any songs in the current queue.")
-    })
+    } else {
+      msg.channel.sendMessage('I am not streaming music in this server.')
+    }
   }
 }
 
@@ -151,7 +185,7 @@ Commands.request = {
   level: 0,
   fn: function (msg, suffix, bot) {
 
-    Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+    checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
       var u = require('url').parse(suffix)
       if (u.host === null) {
         v.request(msg, 'ytsearch:' + suffix, bot, level, 0)
@@ -161,6 +195,7 @@ Commands.request = {
     })
   }
 }
+
 
 Commands.requestat = {
   name: 'requestat',
@@ -183,7 +218,7 @@ Commands.requestat = {
       {
         var str = suffix.substring(x+1);
 
-        Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+        checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
           var u = require('url').parse(str)
           if (u.host === null) {
             v.request(msg, 'ytsearch:' + str, bot, level, i)
@@ -217,10 +252,12 @@ Commands.removeat = {
     }
     else
     {
-      v.removeAt(msg, suffix, bot)
+      v.deleteFromPlaylist(msg, (suffix[1])).then(r => {
+        msg.channel.sendMessage(`**${r}** has been removed from the playlist.`)
+      }).catch(err => {
+        msg.channel.sendMessage(err)
+      })
     }
   }
-
 }
-
 exports.Commands = Commands

@@ -1,7 +1,8 @@
 var Commands = []
 var Logger = require('../../internal/logger.js').Logger
 var config = require('../../../config.json')
-var Permissions = require('../../databases/controllers/permissions.js')
+var checkLevel = require('../../databases/controllers/permissions.js').checkLevel
+var v = require('../../internal/voice.js')
 
 Commands.hug = {
   name: 'hug',
@@ -125,10 +126,11 @@ Commands.sjoin = {
   hidden: true,
   level: 0,
   fn: function (msg, suffix, bot){
-    Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
+    checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
       var voiceCheck = bot.VoiceConnections.find((r) => r.voiceConnection.guild.id === msg.guild.id)
       var VC = msg.member.getVoiceChannel()
       if (VC && (!voiceCheck || level >1)) {
+        v.unregisterVanity(msg);
         VC.join()
       }
       msg.channel.fetchMessages(1).then((result) => {

@@ -1,4 +1,66 @@
+# 4.0.0
+## Release phase
+### 4.2.1
+Reworked sestatus command, particular improvements:   
+- Allow for more status options to be passed. (Online, idle, DND, invisible)   
+- Allow status to be cleared if no suffix is passed.   
+- Misc improvements and added PEBKAC repellant.   
+   
+More verbose logging for the request command to improve capability to debug voice errors.   
+Other miscellaneous fixes.   
+
+### 4.2.0
+Added Elasticsearch as an option to store logs to, file based logging is semi-deprecated because of this.   
+Added [Bezerk](https://github.com/TheSharks/Bezerk) support.   
+Added Imgur key, required for the new `randommeme` command.   
+Added global ignoring.    
+Added the ability to customize initial volume when joining voice.   
+Playlist can be cleared with `++playlist clear`   
+Specific songs can be removed from the playlist with `++playlist remove <number>`   
+Tags from users can be listed with `++tag list @User`   
+Random tags can be showed with `++tag random`   
+Botapi variable for node-cleverbot has been set.   
+
+### 4.1.0
+Added Dockerfiles = Docker support. Documentation for Docker installation added.   
+Added a npm script to create database tables, `npm run-script dbcreate`. Removes `--createdatabase` being required at intial run.    
+Informational commands like `info` use Discord embeds now.   
+Added xkcd comic search command back.    
+Songs can now be deleted from the playlist. (`++playlist delete <position>`)   
+Bugsnag is added as a dependency for reporting errors, **bugsnag is not required to run WildBeast.**    
+Added rankup command which allows increase of user level by one.    
+Database now tracks guild owner changes so level 4 permissions are transferred automatically.    
+Remove obsolete features (CSE, chat logger etc.) that are remnants from pre-2.0 or similar.    
+
+### 4.0.0
+**This update is a breaking change, back up your configs before updating!**     
+Retired nedb for datastorage, now using RethinkDB. Setup process now requires setup of local RDB server, documentation updated to reflect.     
+Tags now use TagScript which allows for a more flexible tag system.     
+YouTubeDL now tries to get only audio to lower your bandwidth usage.     
+Waiting music now shuffles between two songs.     
+Tons of miscellaneous bug fixes.     
+*When updating to this version, make sure you have read the updated documentation to get it running again.*
+
 # 3.0.0
+## Release phase
+### 3.2.0
+Internal tweaks.   
+Retired XL formatting in help for INI formatting.   
+WildBeast now alerts the user with a more descriptive error message if the config file is invalid or missing.   
+The special word `%user` now resolves to a mention instead of the username.   
+`INVALID` doesn't get dumped to the playlist anymore if YouTube videos from a YT playlist fail to fetch, they'll get silently dropped instead.   
+`leave` is renamed to `leave-server` to avoid confusion.    
+
+### 3.1.1
+Fixed welcome message not sending properly when set to private.   
+
+### 3.1.0
+Welcome messages can now be send via private messages.   
+
+### 3.0.0
+Masters are now at `Infinity` instead of 9.   
+Voice channel join messages now use a customized prefix if available.    
+
 ## Beta phase
 ### 3.0.0-beta.6
 Introduced `shuffle` and `voteskip` as music commands.    
@@ -59,7 +121,7 @@ Removed `welcoming-whitellist.json`, this is now handled by `customize`.
 Removed `birds`, `ìdle` and `online`, `idle` and `online` are replaced with `setstatus`.     
 Temporary removed server blacklisting system, this will be reintroduced later.      
 
-# Gamma phase
+## Gamma phase
 (Gamma is a real thing in software development by the way, it's a synonym for RC (Release Candidate))
 ### 2.0.0-gamma.7
 Changed welcoming system to adhere to a whitelist instead of being global.    
@@ -95,7 +157,7 @@ Added a timeout feature.
 Changed `versionchecker.js` ability to check for beta versions to gamma version checking.    
 Moved to LevelDB instead of Redis for handling permission storage and handling timeouts.      
 
-# Beta phase
+## Beta phase
 ### 2.0.0-beta.5
 Fixes several problems caused by 2.0.0-beta.4   
 Added an *incomplete* server defaulting system.   

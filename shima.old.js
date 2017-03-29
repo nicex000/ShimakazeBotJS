@@ -1,20 +1,31 @@
 'use strict'
 process.title = 'Shimakaze-chan'
+
+try {
+  require('./config.json')
+} catch (e) {
+  console.log('\Shimakaze-chan encountered an error while trying to load the config file, please resolve this issue and restart Shimakaze-chan\n\n' + e.message)
+  process.exit()
+}
+
+var argv = require('minimist')(process.argv.slice(2))
+var Logger = require('./runtime/internal/logger.js').Logger
+
+require('./runtime/internal/datacreate.js').check()
+
 var Discordie = require('discordie')
 var Event = Discordie.Events
 var bot
 var runtime = require('./runtime/runtime.js')
-var Logger = runtime.internal.logger.Logger
 var timeout = runtime.internal.timeouts
 var commands = runtime.commandcontrol.Commands
 var aliases = runtime.commandcontrol.Aliases
 var datacontrol = runtime.datacontrol
-var argv = require('minimist')(process.argv.slice(2))
 var Config
 var restarted = false
-var called = false
 
 Logger.info('Initializing...')
+Logger.info('Logger Push')
 
 if (argv.shardmode && !isNaN(argv.shardid) && !isNaN(argv.shardcount)) {
   Logger.info('Starting in ShardMode, this is shard ' + argv.shardid)
@@ -26,41 +37,26 @@ if (argv.shardmode && !isNaN(argv.shardid) && !isNaN(argv.shardcount)) {
   bot = new Discordie()
 }
 
-if (argv.forceupgrade) {
-  if (argv.shardmode) {
-    Logger.warn("Can't upgrade databases in ShardMode, restart normally to upgrade databases.")
-    start()
-  } else {
-    Logger.warn('Force-starting database upgrade.')
-    runtime.internal.upgrade.init().then((r) => {
-      Logger.info(r)
-      start()
-    }).catch((e) => {
-      Logger.error(e)
-    })
-  }
-}
-
-if (!argv.forceupgrade) {
-  try {
-    require('fs').readFileSync('./runtime/initial.txt')
-    start()
-  } catch (e) {
-    if (!argv.noinitial) {
-      runtime.internal.init.initial().then(function () {
-        start()
-      })
-    } else {
-      Logger.debug('Skipped init via argv')
-      require('fs').writeFileSync('./runtime/initial.txt', 'Initial setup skipped.')
-      start()
-    }
-  }
-}
+start()
 
 bot.Dispatcher.on(Event.GATEWAY_READY, function () {
+  bot.Users.fetchMembers()
+  runtime.internal.versioncheck.versionCheck(function (err, res) {
+    if (err) {
+      Logger.error('Version check failed, ' + err)
+    } else if (res) {
+      Logger.info(`Version check: ${res}`)
+    }
+  })
   Logger.info('Ready to start!')
   Logger.info(`Logged in as ${bot.User.username}#${bot.User.discriminator} (ID: ${bot.User.id}) and serving ${bot.Users.length} users in ${bot.Guilds.length} servers.`)
+  bot.User.setStatus("online", {
+    name: "with Rensouhou-chan"
+  })
+  if (argv.shutdownwhenready) {
+    console.log('Shimakaze is going to bed')
+    process.exit(0)
+  }
 })
 
 bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
@@ -102,14 +98,25 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
         return // ignore JS build-in array functions
       }
       Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username}`)
-      if (!c.message.isPrivate) {
+      if (commands[cmd].level === 'master') {
+        if (Config.permissions.master.indexOf(c.message.author.id) > -1) {
+          try {
+            commands[cmd].fn(c.message, suffix, bot)
+          } catch (e) {
+            c.message.channel.sendMessage('An error occured while trying to process this command, you should let the bot author know. \n```' + e + '```')
+            Logger.error(`Command error, thrown by ${commands[cmd].name}: ${e}`)
+          }
+        } else {
+          c.message.channel.sendMessage('This command is only for the bot owner.')
+        }
+      } else if (!c.message.isPrivate) {
         timeout.check(commands[cmd], c.message.guild.id, c.message.author.id).then((y) => {
           if (y !== true) {
             datacontrol.customize.reply(c.message, 'timeout').then((x) => {
-              if (x === 'default') {
+              if (x === null || x === 'default') {
                 c.message.channel.sendMessage(`Wait ${Math.round(y)} more seconds before using that again.`)
               } else {
-                c.message.channel.sendMessage(x.replace(/%user/g, c.message.author.username).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name).replace(/%timeout/, Math.round(y)))
+                c.message.channel.sendMessage(x.replace(/%user/g, c.message.author.mention).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name).replace(/%timeout/, Math.round(y)))
               }
             })
           } else {
@@ -133,10 +140,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                       }
                     } else {
                       datacontrol.customize.reply(c.message, 'nsfw').then((d) => {
-                        if (d === 'default') {
+                        if (d === null || d === 'default') {
                           c.message.channel.sendMessage('This channel does not allow NSFW commands, enable them first with `setnsfw`')
                         } else {
-                          c.message.channel.sendMessage(d.replace(/%user/g, c.message.author.username).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name))
+                          c.message.channel.sendMessage(d.replace(/%user/g, c.message.author.mention).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name))
                         }
                       }).catch((e) => {
                         Logger.error('Reply check error, ' + e)
@@ -147,12 +154,14 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                   })
                 }
               } else {
-                datacontrol.customize.reply(c.message, 'permissions').then((u) => {
-                  if (u === 'default') {
-                    var reason = (r > 4) ? '**This is a master user only command**, ask the bot owner to add you as a master user if you really think you should be able to use this command.' : 'Ask the server owner to modify your level with `setlevel`.'
-                    c.message.channel.sendMessage('You have no permission to run this command!\nYou need level ' + commands[cmd].level + ', you have level ' + r + '\n' + reason)
+                datacontrol.customize.reply(c.message, 'perms').then((u) => {
+                  if (u === null || u === 'default') {
+                    if (r > -1 && !commands[cmd].hidden) {
+                      var reason = (r > 4) ? '**This is a master user only command**, ask the bot owner to add you as a master user if you really think you should be able to use this command.' : 'Ask the server owner to modify your level with `setlevel`.'
+                      c.message.channel.sendMessage('You have no permission to run this command!\nYou need level ' + commands[cmd].level + ', you have level ' + r + '\n' + reason)
+                    }
                   } else {
-                    c.message.channel.sendMessage(u.replace(/%user/g, c.message.author.username).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name).replace(/%nlevel/, commands[cmd].level).replace(/%ulevel/, r))
+                    c.message.channel.sendMessage(u.replace(/%user/g, c.message.author.mention).replace(/%server/g, c.message.guild.name).replace(/%channel/, c.message.channel.name).replace(/%nlevel/, commands[cmd].level).replace(/%ulevel/, r))
                   }
                 }).catch((e) => {
                   Logger.error('Reply check error, ' + e)
@@ -193,9 +202,45 @@ bot.Dispatcher.on(Event.GUILD_MEMBER_ADD, function (s) {
   datacontrol.permissions.isKnown(s.guild)
   datacontrol.customize.isKnown(s.guild)
   datacontrol.customize.check(s.guild).then((r) => {
-    if (r === 'on') {
-      datacontrol.customize.reply(s, 'welcome').then((x) => {
-        s.guild.generalChannel.sendMessage(x.replace(/%user/g, s.member.username).replace(/%server/g, s.guild.name))
+    if (r === 'on' || r === 'channel') {
+      datacontrol.customize.reply(s, 'welcomeMessage').then((x) => {
+        if (x === null || x === 'default') {
+          if(s.guild.id == 98922706317103104)
+          {
+              s.guild.textChannels.forEach(function(ch){
+                if(ch.id == 186873358636285952)
+                {
+                  var suffix = -1 + ' anti'
+                  suffix = suffix.split(' ')
+                  ch.sendMessage(`Welcome `+s.member.mention+` to the server!`).then((m) => datacontrol.permissions.adjustLevel(m, m.mentions, parseFloat(suffix[0]), m.mention_roles).then(function () {
+                    msg.channel.sendMessage('Alright! The permission levels have been set successfully!')
+                  }).catch(function (err) {
+                    msg.channel.sendMessage('Help! Something went wrong!')
+                    Logger.error(err)
+                  }))
+                }
+              })
+
+
+
+          }
+          else
+          {
+            s.guild.generalChannel.sendMessage(`Welcome ${s.member.username} to ${s.guild.name}!`)
+          }
+        } else {
+          s.guild.generalChannel.sendMessage(x.replace(/%user/g, s.member.mention).replace(/%server/g, s.guild.name))
+        }
+      }).catch((e) => {
+        Logger.error(e)
+      })
+    } else if (r === 'private') {
+      datacontrol.customize.reply(s, 'welcomeMessage').then((x) => {
+        if (x === null || x === 'default') {
+          s.member.openDM().then((g) => g.sendMessage(`Welcome to ${s.guild.name}! Please enjoy your stay!`))
+        } else {
+          s.member.openDM().then((g) => g.sendMessage(x.replace(/%user/g, s.member.mention).replace(/%server/g, s.guild.name)))
+        }
       }).catch((e) => {
         Logger.error(e)
       })
@@ -220,40 +265,25 @@ bot.Dispatcher.on(Event.GATEWAY_RESUMED, function () {
 
 bot.Dispatcher.on(Event.PRESENCE_MEMBER_INFO_UPDATE, (user) => {
   datacontrol.users.isKnown(user.new).catch(() => {
-    datacontrol.users.namechange(user.new).catch((e) => {
-      Logger.error(e)
-    })
+    if (user.old.username !== user.new.username) {
+      datacontrol.users.namechange(user.new).catch((e) => {
+        Logger.error(e)
+      })
+    }
   })
-  // We only handle name changes, nothing else
-  if (user.old.username !== user.new.username) {
-    datacontrol.users.namechange(user.new)
-  }
-})
-
-bot.Dispatcher.on(Event.VOICE_CHANNEL_LEAVE, function (e) {
-  runtime.internal.voice.leaveRequired(bot, e.guildId)
 })
 
 bot.Dispatcher.on(Event.DISCONNECTED, function (e) {
   Logger.error('Disconnected from the Discord gateway: ' + e.error)
-  if (!restarted) {
-    restarted = true
-    Logger.info('Trying to login again...')
-    start()
-  } else {
-    Logger.warn('Something happened while reconnecting. Not trying to login again, exiting...')
-    process.exit(1)
-  }
+  Logger.info('Trying to login again...')
+  start()
+})
+
+process.on('unhandledRejection', (reason, p) => {
+  Logger.debug(`Unhandled promise: ${require('util').inspect(p, {depth:3})}: ${reason}`) // I'm lazy
 })
 
 function start () {
-  runtime.internal.versioncheck.versionCheck(function (err, res) {
-    if (err) {
-      Logger.error('Version check failed, ' + err)
-    } else if (res) {
-      Logger.info(res)
-    }
-  })
   try {
     Config = require('./config.json')
   } catch (e) {

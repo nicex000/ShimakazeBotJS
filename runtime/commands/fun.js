@@ -1,13 +1,10 @@
 var Commands = []
 var Logger = require('../internal/logger.js').Logger
 var Giphy = require('../giphy.js')
-var Cb = require('cleverbot-node')
+var Cleverbot = require('cleverbot.io')
 var config = require('../../config.json')
 var unirest = require('unirest')
-var cleverbot = new Cb()
-Cb.prepare(function () {
-  Logger.debug('Launched cleverbot')
-})
+var cleverbot = new Cleverbot(config.api_keys.cleverbot_user, config.api_keys.cleverbot_key)
 
 Commands.gif = {
   name: 'gif',
@@ -219,6 +216,10 @@ Commands.urbandictionary = {
   timeout: 10,
   level: 0,
   fn: function (msg, suffix) {
+    if (!suffix) {
+      msg.reply('Yes, let\'s just look up absolutly nothing.')
+      return
+    }
     var request = require('request')
     request('http://api.urbandictionary.com/v0/define?term=' + suffix, function (error, response, body) {
       if (!error && response.statusCode === 200) {
@@ -334,13 +335,14 @@ Commands.cleverbot = {
   aliases: ['chat', 'cb', 'talk'],
   level: 0,
   fn: function (msg, suffix) {
-    msg.channel.sendTyping()
-    var type = setInterval(function () {
+    cleverbot.create(function (err, session) {
+      if (err) Logger.error(err)
+      cleverbot.setNick('wildbeast')
       msg.channel.sendTyping()
-    }, 5000)
-    cleverbot.write(suffix, function (r) {
-      msg.channel.sendMessage(r.message)
-      clearInterval(type)
+      cleverbot.ask(suffix, function (e, r) {
+        if (e) Logger.error(e)
+        msg.channel.sendMessage(r)
+      })
     })
   }
 }
@@ -462,13 +464,63 @@ Commands.meme = {
   }
 }
 
+Commands.xkcd = {
+  name: 'xkcd',
+  help: "I'll get a XKCD comic for you, you can define a comic number and I'll fetch that one.",
+  timeout: 10,
+  usage: 'Nothing for a random comic, current for latest, number to get that comic.',
+  level: 0,
+  fn: function (msg, suffix) {
+    var request = require('request')
+    var xkcdInfo
+    request('http://xkcd.com/info.0.json', function (error, response, body) {
+      if (!error && response.statusCode === 200) {
+        xkcdInfo = JSON.parse(body)
+        if (suffix.toLowerCase() === 'current') {
+          msg.reply(`**Alternate text (shown on mouse over)**\n ${xkcdInfo.alt}\n\n${xkcdInfo.img}`)
+        } else if (!suffix) {
+          var xkcdRandom = Math.floor(Math.random() * (xkcdInfo.num - 1)) + 1
+          request(`http://xkcd.com/${xkcdRandom}/info.0.json`, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+              xkcdInfo = JSON.parse(body)
+              msg.reply(`**Alternate text (shown on mouse over)**\n ${xkcdInfo.alt}\n\n${xkcdInfo.img}`)
+            } else {
+              msg.reply('Please try again later.')
+              Logger.error(`Got an error: ${error}, status code: ${response.statusCode}`)
+            }
+          })
+        } else if (!isNaN(parseInt(suffix, 10)) && parseInt(suffix, 10) > 0 && (parseInt(suffix, 10) <= xkcdInfo.num)) {
+          request(`http://xkcd.com/${suffix}/info.0.json`, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+              xkcdInfo = JSON.parse(body)
+              msg.reply(`**Alternate text (shown on mouse over)**\n ${xkcdInfo.alt}\n\n${xkcdInfo.img}`)
+            } else {
+              msg.reply('Please try again later.')
+              Logger.error(`Got an error: ${error}, status code: ${response.statusCode}`)
+            }
+          })
+        } else {
+          msg.reply(`There are only ${xkcdInfo.num} xkcd comics!`)
+        }
+      } else {
+        msg.reply('Please try again later.')
+        Logger.error(`Got an error: ${error}, status code: ${response.statusCode}`)
+      }
+    })
+  }
+}
+
 Commands.magic8ball = {
   name: 'magic8ball',
   help: "I'll make a prediction using a Magic 8 Ball",
   aliases: ['8ball'],
   timeout: 5,
   level: 0,
-  fn: function (msg) {
+  fn: function (msg, suffix) {
+    if (!suffix) {
+      msg.reply('I mean I can shake this 8ball all I want but without a question it\'s kinda dumb.')
+      return
+    }
     var answers = [
       'Signs point to yes.',
       'Yes.',
@@ -497,6 +549,24 @@ Commands.magic8ball = {
     ]
     var answer = answers[Math.floor(Math.random() * answers.length)]
     msg.channel.sendMessage('The Magic 8 Ball says:\n```' + answer + '```')
+  }
+}
+
+Commands.randommeme = {
+  name: 'randommeme',
+  help: "I'll get a random meme for you!",
+  level: '0',
+  nsfw: true,
+  fn: function (msg) {
+    unirest.get(`https://api.imgur.com/3/g/memes/viral/${Math.floor((Math.random() * 8) + 1)}`) // 20 Memes per page, 160 Memes
+      .header('Authorization', 'Client-ID ' + config.api_keys.imgur)
+      .end(function (result) {
+        if (!result.body.data.error) {
+          msg.channel.sendMessage(result.body.data[Math.floor((Math.random() * 20) + 1)].link)
+        } else {
+          Logger.error(result.body.data.error)
+        }
+      })
   }
 }
 

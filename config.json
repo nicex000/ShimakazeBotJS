@@ -19,6 +19,16 @@
     "deleteTimeoutLong": 6000,
     "maxvcslots": 50
   },
+  "bezerk": {
+   "use": false,
+   "uri": "ws://localhost:1337"
+ },
+ "elasticsearch": {
+   "use": false,
+   "client": {
+     "host": "localhost:9200"
+   }
+ },
   "permissions": {
     "master": ["nicex000#1259", "@nicex000#1259", "島風♥", "@nicex000", "@島風♥", "nicex000", "@島風♥#1259", "155038222794227712"],
     "level1": [],
@@ -33,6 +43,10 @@
     "google": "AIzaSyBLQaWjyEg5Juar0RG7DYuSoFnIvbhwKT4",
     "mashape": "A mashape key",
     "cse": "Not required anymore, ignore this field",
-    "twitchId": "kc2anl6ytv1jptqsrwt4oiiwflejc5e"
+    "twitchId": "kc2anl6ytv1jptqsrwt4oiiwflejc5e",
+    "bugsnag": "A Bugsnag api key, Bugsnag tracker users only",
+    "imgur": "A Imgur Client-ID",
+    "cleverbot_user": "",
+    "cleverbot_key": ""
   }
 }
