@@ -217,9 +217,8 @@ Commands.channelinfo = {
 }
 }
 
-
-Commands.autoDelete = {
-  name: 'autoDelete',
+Commands.autodelete = {
+  name: 'autodelete',
   help: 'autodelete your own message after a timeout',
   aliases: ['d'],
   usage: 'timout suffix',
@@ -271,6 +270,75 @@ Commands.autoDelete = {
               m.delete().catch((e) => Logger.error(e))
             }, 2000)
         })
+      }
+    }
+  }
+}
+
+Commands.assignrole = {
+  name: 'assignrole',
+  help: 'Let me join a role!',
+  aliases: ['addrole', 'gibrole'],
+  noDM: true,
+  usage: 'role name',
+  level: 0,
+  fn: function (msg, suffix, bot) {
+    var guild = msg.guild
+    var user = msg.author
+    var botuser = bot.User
+    var botPerms = botuser.permissionsFor(guild)
+    if (!botPerms.General.MANAGE_ROLES) {
+      msg.reply("I don't have enough permissions to do this!")
+      return
+    } else if (suffix.length == 0) {
+      msg.channel.sendMessage('Please write the role name (not a mention).')
+    } else {
+      var member = guild.members.find((m) => m.id === user.id)
+      var role = guild.roles.find(r => r.name == suffix)
+      if(role !== undefined && member !== undefined) {
+        member.assignRole(role).then(() => {
+          msg.channel.sendMessage('Successfully added `' + suffix + '` to `' + user.username + '`.')
+        }).catch((error) => {
+          msg.channel.sendMessage('Failed to add the role `'+ suffix + '` to `' + user.username + '`. The role is too high for me to reach.')
+        })
+      } else {
+        msg.channel.sendMessage('The role `'+ suffix + '` doesn\'t exist.')
+      }
+    }
+  }
+}
+
+
+Commands.unassignrole = {
+  name: 'unassignrole',
+  help: 'I don\'t want this role anymore, please remove it!',
+  noDM: true,
+  usage: 'role name',
+  aliases: ['removerole', 'takerole'],
+  level: 0,
+  fn: function (msg, suffix, bot) {
+    var guild = msg.guild
+    var user = msg.author
+    var botuser = bot.User
+    var botPerms = botuser.permissionsFor(guild)
+    if (!botPerms.General.MANAGE_ROLES) {
+      msg.reply("I don't have enough permissions to do this!")
+      return
+    } else if (suffix.length == 0) {
+      msg.channel.sendMessage('Please write the role name (not a mention).')
+      return
+    } else {
+
+      var member = guild.members.find((m) => m.id === user.id)
+      var role = member.roles.find(r => r.name == suffix)
+      if(role !== undefined && member !== undefined) {
+        member.unassignRole(role).then(() => {
+          msg.channel.sendMessage('Successfully removed `' + suffix + '` to `' + user.username + '`.')
+        }).catch((error) => {
+          msg.channel.sendMessage('Failed to remove the role `'+ suffix + '` to `' + user.username + '`. The role is too high for me to reach.')
+        })
+      } else {
+        msg.channel.sendMessage('The role `'+ suffix + '` doesn\'t exist.')
       }
     }
   }

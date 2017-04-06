@@ -662,7 +662,11 @@ function fetch (v, msg, listIndex, stats) {
     if (v.indexOf('youtu') > -1) {
       options = ['--skip-download', '-f bestaudio/worstvideo', '--add-header', 'Authorization:' + Config.api_keys.google]
     } else {
-      options = ['--skip-download', '-f bestaudio/worstvideo']
+      if(v.includes('nicovideo.jp')) {
+        options = ['--skip-download', '--netrc']
+      } else {
+        options = ['--skip-download', '-f bestaudio/worstvideo']
+      }
     }
     YT.getInfo(v, options, function (err, i) {
       if (!err && i) {

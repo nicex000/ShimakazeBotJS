@@ -65,7 +65,7 @@ Commands.purge = {
   usage: '<number>',
   aliases: ['prune'],
   noDM: true,
-  timeout: 30,
+  timeout: 0,
   level: 0,
   fn: function (msg, suffix, bot) {
     var guild = msg.guild
@@ -74,8 +74,8 @@ Commands.purge = {
     var botPerms = bot.User.permissionsFor(guild)
     var userPermsCh = user.permissionsFor(msg.channel)
    var botPermsCh = bot.User.permissionsFor(msg.channel)
-   if (!userPerms.Text.MANAGE_MESSAGES && !userPermsCh.Text.MANAGE_MESSAGES ) {
-     if (!userPerms.Text.MANAGE_MESSAGES) {
+
+     if (!userPerms.Text.MANAGE_MESSAGES && !userPermsCh.Text.MANAGE_MESSAGES ) {
         msg.reply('You do not have the permission to manage messages!')
       } else if (!botPerms.Text.MANAGE_MESSAGES && !botPermsCh.Text.MANAGE_MESSAGES) {
         msg.reply('I do not have `Manage Messages` permission!')
@@ -92,7 +92,6 @@ Commands.purge = {
         }
       }
     }
-  }
 }
 
 Commands.eval = {
