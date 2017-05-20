@@ -329,24 +329,6 @@ Commands.fancyinsult = {
   }
 }
 
-Commands.cleverbot = {
-  name: 'cleverbot',
-  help: 'Talk to cleverbot!',
-  aliases: ['chat', 'cb', 'talk'],
-  level: 0,
-  fn: function (msg, suffix) {
-    cleverbot.create(function (err, session) {
-      if (err) Logger.error(err)
-      cleverbot.setNick('wildbeast')
-      msg.channel.sendTyping()
-      cleverbot.ask(suffix, function (e, r) {
-        if (e) Logger.error(e)
-        msg.channel.sendMessage(r)
-      })
-    })
-  }
-}
-
 Commands.catfacts = {
   name: 'catfacts',
   help: "I'll give you some interesting catfacts",

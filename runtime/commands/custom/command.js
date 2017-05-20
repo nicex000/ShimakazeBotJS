@@ -3,6 +3,7 @@ var Logger = require('../../internal/logger.js').Logger
 var config = require('../../../config.json')
 var checkLevel = require('../../databases/controllers/permissions.js').checkLevel
 var v = require('../../internal/voice.js')
+var fButton = 0
 
 Commands.hug = {
   name: 'hug',
@@ -343,5 +344,24 @@ Commands.unassignrole = {
     }
   }
 }
+
+Commands.pressf = {
+  name: 'pressf',
+  help: "Press F to pay respects",
+  aliases: ['f'],
+  timeout: 3,
+  level: 0,
+  fn: function (msg, suffix, bot) {
+    fButton++
+    var field = [{name: '**' + msg.author.username +  '** has paid their respects.' , value: '```\n' + fButton + ' Today' + '```', inline: true}]
+    var embed = {
+      color: 0x3498db,
+      author: {icon_url: bot.User.avatarURL, name: "\0"},
+      fields: field
+    }
+    msg.channel.sendMessage('', false, embed)
+  }
+}
+
 
 exports.Commands = Commands
