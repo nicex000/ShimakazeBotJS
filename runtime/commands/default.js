@@ -1,4 +1,4 @@
-var Commands = []
+﻿var Commands = []
 var request = require('request')
 var config = require('../../config.json')
 var Logger = require('../internal/logger.js').Logger
@@ -533,6 +533,7 @@ Commands.userinfo = {
     if (msg.mentions.length === 0) {
       Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
         var tempRoles = msg.member.roles.sort(function (a, b) { return a.position - b.position }).reverse()
+	var joinedAt = new  Date(msg.member.joined_at)
         var roles = []
         for (var i in tempRoles) {
           roles.push(tempRoles[i].name)
@@ -542,7 +543,8 @@ Commands.userinfo = {
           {name: 'Status', value: '```\n' + msg.author.status + '```', inline: true},
           {name: 'Account Creation', value: '```\n' + msg.author.createdAt + '```'},
           {name: 'Access Level', value: '```\n' + level + '```'},
-          {name: 'Roles', value: '```\n' + `${tempRoles.length > 0 ? roles : 'None'}` + '```'}]
+          {name: 'Roles', value: '```\n' + `${tempRoles.length > 0 ? roles : 'None'}` + '```'},
+	  {name: 'Joined At', value: '```\n' + joinedAt.toString() + '```'}]
         if (msg.author.gameName) {
           field.splice(1, 0, {name: 'Playing', value: '```\n' + msg.author.gameName + '```', inline: true})
         }
