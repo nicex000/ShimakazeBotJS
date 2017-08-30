@@ -535,7 +535,6 @@ Commands.userinfo = {
       Permissions.checkLevel(msg, msg.author.id, msg.member.roles).then((level) => {
         var tempRoles = msg.member.roles.sort(function (a, b) { return a.position - b.position }).reverse()
 	var joinedAt = new  Date(msg.member.joined_at)
-	//joinedAt = joinedAt.toString()
         var roles = []
         for (var i in tempRoles) {
           roles.push(tempRoles[i].name)
