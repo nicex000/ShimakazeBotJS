@@ -1,4 +1,4 @@
-var Commands = []
+﻿var Commands = []
 var Logger = require('../../internal/logger.js').Logger
 var config = require('../../../config.json')
 var checkLevel = require('../../databases/controllers/permissions.js').checkLevel
@@ -99,7 +99,7 @@ Commands.goodmorning = {
     else if(msg.author.id == 155038222794227712)
     {
       var msgArray = []
-      msgArray.push(': We have finally awoken, that was slow, wasn\'t it?\nGoodMorning / everyone!')
+      msgArray.push('We have finally awoken, that was slow, wasn\'t it?\nGoodMorning / everyone!')
       msg.channel.sendMessage(msgArray.join('\n'))
     }
     else if(msg.author.id == 66792137647206400 || msg.author.id == 186873040292806656)
