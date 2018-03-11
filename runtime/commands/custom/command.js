@@ -363,5 +363,49 @@ Commands.pressf = {
   }
 }
 
+Commands.shimasay = {
+  name: 'shimasay',
+  help: "Talk for me",
+  hidden: true,
+  level: 5,
+  fn: function (msg, suffix, bot) {
+
+    if (suffix.length == 0) {
+      msg.channel.sendMessage('Please write the guild channel and text')
+      return
+    }
+    var x = suffix.indexOf(" ");
+    if(x<=0) {
+      msg.channel.sendMessage("Please **ALSO** write the channel and text")
+      return
+    }
+    var guildname = suffix.substring(0, x);
+    var suff2 = suffix.substring(x+1)
+    x = suff2.indexOf(" ");
+    if(x<=0) {
+      msg.channel.sendMessage("Please **ALSO** write the text")
+      return
+    }
+    var channelname = suff2.substring(0, x);
+    var text = suff2.substring(x+1)
+
+    var gs = bot.Guilds.toArray()
+    for (i = 0; i < gs.length; i++) {
+      if(gs[i].name == guildname) {
+        var cs = gs[i].channels
+        for(j = 0; j< cs.length; j++) {
+          if(cs[j].isGuildText && cs[j].name == channelname)
+            {
+              msg.channel.sendMessage("_" + text + "_ sent to **" + channelname + "** in **" + guildname + "**")
+              cs[j].sendMessage(text)
+              return
+            }
+        }
+        msg.channel.sendMessage("Channel **" + channelname + "** not found!")
+      }
+    }
+    msg.channel.sendMessage("Guild **" + guildname + "** not found!")
+  }
+}
 
 exports.Commands = Commands
