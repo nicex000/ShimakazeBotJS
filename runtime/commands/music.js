@@ -252,7 +252,7 @@ Commands.removeat = {
     }
     else
     {
-      v.deleteFromPlaylist(msg, (suffix[1])).then(r => {
+      v.deleteFromPlaylist(msg, (suffix)).then(r => {
         msg.channel.sendMessage(`**${r}** has been removed from the playlist.`)
       }).catch(err => {
         msg.channel.sendMessage(err)

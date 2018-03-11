@@ -262,9 +262,12 @@ function next (msg, suffix, bot) {
   bot.VoiceConnections
     .map((connection) => {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
-        if (list[msg.guild.id].link.length === 0) {
+        if (list[msg.guild.id] === undefined || list[msg.guild.id].link.length === 0) {
           delete list[msg.guild.id]
           msg.channel.sendMessage('Playlist has ended.')
+          list[msg.guild.id] = {
+            vanity: false
+          }
           //connection.voiceConnection.disconnect()
           return
         }
@@ -289,7 +292,7 @@ function next (msg, suffix, bot) {
           })
         }
         encoder.once('end', () => {
-          if (list[msg.guild.id].info.length === 0) return
+          if (list[msg.guild.id] === undefined || list[msg.guild.id].info === undefined || list[msg.guild.id].info.length === 0) return
           msg.channel.sendMessage('**' + list[msg.guild.id].info[0] + '** has ended!').then((m) => {
             if (Config.settings.autodeletemsg) {
               setTimeout(() => {
@@ -420,7 +423,7 @@ exports.skip = function (msg, suffix, bot) {
   if (connect.length < 1) {
     msg.reply('No connection.')
     return
-  } else if (list[msg.guild.id].link === undefined) {
+  } else if (list[msg.guild.id] === undefined ||list[msg.guild.id].link === undefined) {
     msg.reply('Try requesting a song first before skipping.')
     return
   }
