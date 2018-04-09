@@ -29,3 +29,6 @@ node_modules
 
 # Config
 config.json
+
+#project settings 
+.idea
