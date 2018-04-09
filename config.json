@@ -1,7 +1,7 @@
 {
   "bot": {
     "isbot": true,
-    "token": "MTkxOTgxNDUxNDYwMzQ1ODU2.CkCWgQ.v3WQmhx-evyp8HYJRSM6SsTO0jo",
+    "token": "MTkxOTgxNDUxNDYwMzQ1ODU2.DRHVVA.f72ZbYSg3EoV4FhX8-7mYQlQvAc",
     "email": "If you need this, optional",
     "password": "Again if you need this, optional",
     "oauth": "https://discordapp.com/oauth2/authorize?client_id=191977717623816193&scope=bot&permissions=3"
