@@ -337,7 +337,7 @@ Commands.shimasay = {
       msg.channel.sendMessage('Please **ALSO** write the channel and text')
       return
     }
-    var guildname = suffix.substring(0, x)
+    var guildname = suffix.substring(0, x-1)
     var suff2 = suffix.substring(x + 1)
     x = suff2.indexOf(' ')
     if (x <= 0) {

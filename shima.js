@@ -57,7 +57,8 @@ bot.Dispatcher.on(Event.GATEWAY_READY, function () {
   })
   Logger.info(`Logged in as ${bot.User.username}#${bot.User.discriminator} (ID: ${bot.User.id}) and serving ${bot.Users.length} users in ${bot.Guilds.length} servers.`)
   bot.User.setStatus("online", {
-    name: "with Rensouhou-chan"
+    name: "with Rensouhou-chan",
+    type: 0
   })
   if (argv.shutdownwhenready) {
     console.log('Shimakaze is going to bed')
@@ -105,11 +106,18 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
     if (aliases[cmd]) {
       cmd = aliases[cmd].name
     }
-    if (commands[cmd]) {
+    if (commands[cmd]) {1
       if (typeof commands[cmd] !== 'object') {
         return // ignore JS build-in array functions
       }
-      Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} ->in ${c.message.guild.name} #${c.message.channel.name}`)
+      if(c.message.isPrivate)
+      {
+          Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} -> in DM`)
+      }
+      else
+      {
+          Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} ->in ${c.message.guild.name} #${c.message.channel.name}`)
+      }
       if (commands[cmd].level === 'master') {
         if (Config.permissions.master.indexOf(c.message.author.id) > -1) {
           try {
