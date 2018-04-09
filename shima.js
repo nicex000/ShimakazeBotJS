@@ -109,7 +109,7 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
       if (typeof commands[cmd] !== 'object') {
         return // ignore JS build-in array functions
       }
-      Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username}`)
+      Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} ->in ${c.message.guild.name} #${c.message.channel.name}`)
       if (commands[cmd].level === 'master') {
         if (Config.permissions.master.indexOf(c.message.author.id) > -1) {
           try {
@@ -299,9 +299,6 @@ bot.Dispatcher.on(Event.GUILD_MEMBER_ADD, function (s) {
                   }))
                 }
               })
-
-
-
           }
           else
           {
