@@ -40,6 +40,12 @@ Commands.kiss = {
       msgArray.push('*gives ' + msg.author.mention + ' a lovers kiss ♥♥♥*')
       msg.channel.sendMessage(msgArray.join('\n'))
     }
+    else if(msg.author.id == 181390311816298496)
+    {
+      var msgArray = []
+      msgArray.push(msg.author.mention + ' you Baka!\n _gives him a small kiss on the cheek ♥_')
+      msg.channel.sendMessage(msgArray.join('\n'))
+    }
     else
     {
       msg.reply("I'm not going to kiss you!")
