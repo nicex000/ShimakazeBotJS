@@ -40,7 +40,15 @@ Commands.kiss = {
       msgArray.push(msg.author.mention + ' you Baka!\n _gives him a small kiss on the cheek ♥_')
       msg.channel.sendMessage(msgArray.join('\n'))
     } else {
-      msg.reply("I'm not going to kiss you!")
+      if (Math.random() * 100 < 0.5) {
+        var msgArray = []
+        msgArray.push(msg.author.mention + ' you Baka!\n _gives him a small kiss on the cheek ♥_')
+        msg.channel.sendMessage(msgArray.join('\n'))
+      }
+      else
+      {
+        msg.reply("I'm not going to kiss you!")
+      }
     }
   }
 }
@@ -124,7 +132,6 @@ Commands.sjoin = {
 Commands.parrot = {
   name: 'parrot',
   help: 'remove parrot command message for nightbot',
-  aliases: ['p'],
   hidden: true,
   level: 1,
   fn: function (msg, suffix, bot) {
