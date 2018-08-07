@@ -82,6 +82,9 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
     } else {
       prefix = p
     }
+    if (bot.User.id == 476151220004978689) {
+      prefix = prefix + prefix
+    }
     var cmd
     var suffix
     if (c.message.content.indexOf(prefix) === 0) {

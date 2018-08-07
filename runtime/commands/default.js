@@ -258,7 +258,7 @@ Commands.info = {
     try {
       owner = `${bot.Users.get(config.permissions.master[0]).username}#${bot.Users.get(config.permissions.master[0]).discriminator}`
     } catch (e) {
-      owner = `'ID: ${config.permissions.master[0]}`
+      owner = `ID: ${config.permissions.master[0]}`
     }
     var field = [{name: 'Servers Connected', value: '```\n' + bot.Guilds.length + '```', inline: true},
         {name: 'Users Known', value: '```\n' + bot.Users.length + '```', inline: true},
@@ -277,7 +277,7 @@ Commands.info = {
       title: `Running on ShimaEngine version ${require('../../package.json').version}`,
       timestamp: new Date(),
       fields: field,
-      description: '*My developer is nicex000#1259*',
+      description: '*My developer is nicex000*',
       url: 'https://github.com/TheSharks/WildBeast',
       footer: {text: `Online for ${getUptime()}`}
     })
@@ -493,7 +493,7 @@ Commands['server-info'] = {
       {name: 'Text Channels', value: '```\n' + msg.guild.textChannels.length + '```', inline: true},
       {name: 'Voice Channels', value: '```\n' + msg.guild.voiceChannels.length + '```', inline: true},
       {name: 'List of Text Channels', value: '```\n' + text + '```', inline: true},
-      {name: 'List of Text Channels', value: '```\n' + voice + '```', inline: true},
+      {name: 'List of Voice Channels', value: '```\n' + voice + '```', inline: true},
       {name: 'Total Roles', value: '```\n' + msg.guild.roles.length + '```', inline: true},
       {name: 'List of Roles', value: '```\n' + roles + '```', inline: true}]
 

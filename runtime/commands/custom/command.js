@@ -44,9 +44,7 @@ Commands.kiss = {
         var msgArray = []
         msgArray.push(msg.author.mention + ' you Baka!\n _gives him a small kiss on the cheek ♥_')
         msg.channel.sendMessage(msgArray.join('\n'))
-      }
-      else
-      {
+      } else {
         msg.reply("I'm not going to kiss you!")
       }
     }
@@ -264,6 +262,18 @@ Commands.assignrole = {
       var member = guild.members.find((m) => m.id === user.id)
       var role = guild.roles.find(r => r.name == suffix)
       if (role !== undefined && member !== undefined) {
+        if (guild.id == 345295036809740289) {
+          var botMember = guild.members.find((m) => m.id === botuser.id)
+          var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
+          if (botPerm === undefined) {
+            msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
+            return
+          }
+          if (role.position > botPerm.position) {
+            msg.channel.sendMessage('Failed to add the role `' + suffix + '` to `' + user.username + '`. The role is not a self assignable role.')
+            return
+          }
+        }
         member.assignRole(role).then(() => {
           msg.channel.sendMessage('Successfully added `' + suffix + '` to `' + user.username + '`.')
         }).catch((error) => {
@@ -298,10 +308,25 @@ Commands.unassignrole = {
       var member = guild.members.find((m) => m.id === user.id)
       var role = member.roles.find(r => r.name == suffix)
       if (role !== undefined && member !== undefined) {
+        if (guild.id == 345295036809740289) {
+          var botMember = guild.members.find((m) => m.id === botuser.id)
+          var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
+          if (botPerm === undefined) {
+            msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
+            return
+          }
+          if (role.position > botPerm.position) {
+            msg.channel.sendMessage('Failed to remove the role `' + suffix + '` from `' + user.username + '`. The role is not a self assignable role.')
+            if (guild.members.find((m) => m.id === user.id).roles.find(r => r.name.includes('kiddo')) !== undefined) {
+              msg.reply('Sorry kiddo. Come back when you\'re 21.')
+            }
+            return
+          }
+        }
         member.unassignRole(role).then(() => {
-          msg.channel.sendMessage('Successfully removed `' + suffix + '` to `' + user.username + '`.')
+          msg.channel.sendMessage('Successfully removed `' + suffix + '` from `' + user.username + '`.')
         }).catch((error) => {
-          msg.channel.sendMessage('Failed to remove the role `' + suffix + '` to `' + user.username + '`. The role is too high for me to reach.')
+          msg.channel.sendMessage('Failed to remove the role `' + suffix + '` from `' + user.username + '`. The role is too high for me to reach.')
         })
       } else {
         msg.channel.sendMessage('The role `' + suffix + '` doesn\'t exist.')
@@ -344,7 +369,7 @@ Commands.shimasay = {
       msg.channel.sendMessage('Please **ALSO** write the channel and text')
       return
     }
-    var guildname = suffix.substring(0, x-1)
+    var guildname = suffix.substring(0, x - 1)
     var suff2 = suffix.substring(x + 1)
     x = suff2.indexOf(' ')
     if (x <= 0) {
