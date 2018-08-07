@@ -317,7 +317,7 @@ Commands.unassignrole = {
           }
           if (role.position > botPerm.position) {
             msg.channel.sendMessage('Failed to remove the role `' + suffix + '` from `' + user.username + '`. The role is not a self assignable role.')
-            if (guild.members.find((m) => m.id === user.id).roles.find(r => r.name.includes('kiddo')) !== undefined) {
+            if (suffix.includes('kiddo') && guild.members.find((m) => m.id === user.id).roles.find(r => r.name.includes('kiddo')) !== undefined) {
               msg.reply('Sorry kiddo. Come back when you\'re 21.')
             }
             return
