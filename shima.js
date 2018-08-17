@@ -93,7 +93,7 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
     }
     if (c.message.author.bot) {
       if (c.message.author.id == 386449093385388053 || c.message.author.id == 422330233035948032 || c.message.author.id == 476151220004978689 || c.message.author.id == 191981451460345856) {
-        if(message.indexOf(prefix) === 1 || message.ndexOf(bot.User.mention) === 1 || message.indexOf(bot.User.nickMention) === 1)
+        if(message.indexOf(prefix) === 1 || message.indexOf(bot.User.mention) === 1 || message.indexOf(bot.User.nickMention) === 1)
         {
           message = message.slice(1)
         }
