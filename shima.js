@@ -101,7 +101,9 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
       suffix = suffix.slice(2, suffix.length).join(' ')
     }
     if (c.message.author.bot || c.message.author.id === bot.User.id) {
-      return
+      if(!(c.message.author.id === 386449093385388053 || c.message.author.id === 422330233035948032)){
+        return
+      }
     }
     if (cmd === 'help') {
       runtime.commandcontrol.helpHandle(c.message, suffix)
