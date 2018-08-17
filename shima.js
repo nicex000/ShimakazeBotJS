@@ -87,31 +87,42 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
     }
     var cmd
     var suffix
-    if (c.message.content.indexOf(prefix) === 0) {
-      cmd = c.message.content.substr(prefix.length).split(' ')[0].toLowerCase()
-      suffix = c.message.content.substr(prefix.length).split(' ')
-      suffix = suffix.slice(1, suffix.length).join(' ')
-    } else if (c.message.content.indexOf(bot.User.mention) === 0) {
-      cmd = c.message.content.substr(bot.User.mention.length + 1).split(' ')[0].toLowerCase()
-      suffix = c.message.content.substr(bot.User.mention.length).split(' ')
-      suffix = suffix.slice(2, suffix.length).join(' ')
-    } else if (c.message.content.indexOf(bot.User.nickMention) === 0) {
-      cmd = c.message.content.substr(bot.User.nickMention.length + 1).split(' ')[0].toLowerCase()
-      suffix = c.message.content.substr(bot.User.nickMention.length).split(' ')
-      suffix = suffix.slice(2, suffix.length).join(' ')
+    var message = c.message.content
+    if( c.message.author.id === bot.User.id) {
+      return
     }
-    if (c.message.author.bot || c.message.author.id === bot.User.id) {
-      if(!(c.message.author.id === 386449093385388053 || c.message.author.id === 422330233035948032)){
+    if (c.message.author.bot) {
+      if (c.message.author.id == 386449093385388053 || c.message.author.id == 422330233035948032 || c.message.author.id == 476151220004978689 || c.message.author.id == 191981451460345856) {
+        if(message.indexOf(prefix) === 1 || message.ndexOf(bot.User.mention) === 1 || message.indexOf(bot.User.nickMention) === 1)
+        {
+          message = message.slice(1)
+        }
+      }
+      else {
         return
       }
     }
+    if (message.indexOf(prefix) === 0) {
+      cmd = message.substr(prefix.length).split(' ')[0].toLowerCase()
+      suffix = message.substr(prefix.length).split(' ')
+      suffix = suffix.slice(1, suffix.length).join(' ')
+    } else if (message.indexOf(bot.User.mention) === 0) {
+      cmd = message.substr(bot.User.mention.length + 1).split(' ')[0].toLowerCase()
+      suffix = message.substr(bot.User.mention.length).split(' ')
+      suffix = suffix.slice(2, suffix.length).join(' ')
+    } else if (message.indexOf(bot.User.nickMention) === 0) {
+      cmd = message.substr(bot.User.nickMention.length + 1).split(' ')[0].toLowerCase()
+      suffix = message.substr(bot.User.nickMention.length).split(' ')
+      suffix = suffix.slice(2, suffix.length).join(' ')
+    }
+
     if (cmd === 'help') {
       runtime.commandcontrol.helpHandle(c.message, suffix)
     }
     if (aliases[cmd]) {
       cmd = aliases[cmd].name
     }
-    if (commands[cmd]) {1
+    if (commands[cmd]) {
       if (typeof commands[cmd] !== 'object') {
         return // ignore JS build-in array functions
       }
