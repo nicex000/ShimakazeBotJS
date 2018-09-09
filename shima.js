@@ -394,6 +394,104 @@ bot.Dispatcher.on(Event.DISCONNECTED, function (e) {
   start()
 })
 
+bot.Dispatcher.on(Event.VOICE_CHANNEL_JOIN, function (e) {
+  if (bot.User.id === e.user.id) { // ignore self
+    return
+  }
+  var connect = bot.VoiceConnections.find(function (connection) {
+    return connection.voiceConnection.channelId === e.channelId
+  })
+  if (connect && connect.voiceConnection.guildId === '345295036809740289') { // make it only work on lolis server
+    try {
+      commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 1, bot)
+    }
+    catch (c) {
+      Logger.info(c)
+    }
+  }
+})
+
+bot.Dispatcher.on(Event.VOICE_CHANNEL_LEAVE, function (e) {
+  if (bot.User.id === e.user.id) { // ignore self
+    return
+  }
+  var connect = bot.VoiceConnections.find(function (connection) {
+    return connection.voiceConnection.channel.id === e.channelId
+  })
+  if (connect && connect.voiceConnection.guildId === '345295036809740289') { // make it only work on lolis server
+    if (e.newChannelId === '345305120440844289') { // if user has been thrown in the dumpster
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 3, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+    else {
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 2, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+  }
+})
+
+bot.Dispatcher.on(Event.VOICE_USER_SELF_MUTE, function (e) {
+  if (bot.User.id === e.user.id) { // ignore self
+    return
+  }
+  var connect = bot.VoiceConnections.find(function (connection) {
+    return connection.voiceConnection.channelId === e.channelId
+  })
+  if (connect && connect.voiceConnection.guildId === '345295036809740289') { // make it only work on lolis server
+    if (e.state) {
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 4, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+    else {
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 5, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+  }
+})
+
+bot.Dispatcher.on(Event.VOICE_USER_SELF_DEAF, function (e) {
+  if (bot.User.id === e.user.id) { // ignore self
+    return
+  }
+  var connect = bot.VoiceConnections.find(function (connection) {
+    return connection.voiceConnection.channelId === e.channelId
+  })
+  if (connect && connect.voiceConnection.guildId === '345295036809740289') { // make it only work on lolis server
+    if (e.state) {
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 6, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+    else {
+      try {
+        commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 7, bot)
+      }
+      catch (c) {
+        Logger.info(c)
+      }
+    }
+  }
+})
+
 bot.Dispatcher.onAny((type, data) => {
   if (data.type === 'READY' || type === 'VOICE_CHANNEL_JOIN' || type === 'VOICE_CHANNEL_LEAVE' || type.indexOf('VOICE_USER') === 0 || type === 'PRESENCE_UPDATE' || type === 'TYPING_START' || type === 'GATEWAY_DISPATCH') return
   Bezerk.emit(type, data, bot)

@@ -2,6 +2,8 @@
 var v = require('../internal/voice.js')
 var checkLevel = require('../databases/controllers/permissions.js').checkLevel
 var Commands = []
+var Logger = require('../internal/logger.js').Logger
+var teamspeakOn = true
 
 Commands.music = {
   name: 'music',
@@ -258,6 +260,43 @@ Commands.removeat = {
         msg.channel.sendMessage(err)
       })
     }
+  }
+}
+
+Commands.teamspeaksimulator = {
+  name: 'teamspeaksimulator',
+  hidden: true,
+  noDM: true,
+  timeout: 0,
+  level: 0,
+  fn: function (serverId, index, bot)
+  {
+    if (serverId === '345295036809740289') {
+      if (teamspeakOn) v.tsSimulator(serverId, index, bot)
+    }
+    else {
+      Logger.warn('User tried to run the command')
+    }
+  }
+}
+
+Commands.enablets = {
+  name: 'enablets',
+  hidden: true,
+  timout: 0,
+  level: 'master',
+  fn: function (msg, suffix, bot) {
+    teamspeakOn = !teamspeakOn
+    msg.channel.fetchMessages(1).then((result) => {
+      bot.Messages.deleteMessages(result.messages)
+    }).catch((error) => {
+      Logger.error(error)
+    })
+    msg.channel.sendMessage(teamspeakOn).then((m) => {
+      setTimeout(() => {
+        m.delete().catch((e) => Logger.error(e))
+      }, 500)
+    })
   }
 }
 exports.Commands = Commands

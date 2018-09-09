@@ -161,7 +161,8 @@ exports.lovelive = function (msg, suffix, bot) {
   bot.VoiceConnections
     .map((connection) => {
       if (connection.voiceConnection.guild.id === msg.guild.id) {
-        var dir = "C:/Users/MartinNicholas/Music/Love Live/";
+        var dir = Config.audio_paths.lovelive
+        if(dir.length < 1) return
         switch (parseInt(suffix[0]))
         {
           default:
@@ -650,6 +651,56 @@ exports.leaveRequired = function (bot, guild) {
     if (connect.voiceConnection.channel.members.length <= 1) {
       delete list[guild.id]
       connect.voiceConnection.disconnect()
+    }
+  }
+}
+
+exports.tsSimulator = function (guild, index, bot) {
+  var connect = bot.VoiceConnections.find(function (connection) {
+    return connection.voiceConnection.guild.id === guild
+  })
+  if (connect) {
+    if (connect.voiceConnection.channel.members.length > 1 && index > 0) {
+      if (list[guild] === undefined || list[guild].link === undefined || list[guild].link.length === 0) {
+        var dir = Config.audio_paths.teamspeak
+        if(dir.length < 1) return
+        var music = fs.readdirSync(dir)
+        var tsFile = ''
+
+        switch (index) {
+          default:
+            return
+          case 1:
+            var tsFile = dir + 'joined.wav'
+            break
+          case 2:
+            var tsFile = dir + 'left.wav'
+            break
+          case 3:
+            var tsFile = dir + 'movedtodumpster.wav'
+            break
+          case 4:
+            var tsFile = dir + 'micmute.wav'
+            break
+          case 5:
+            var tsFile = dir + 'micunmute.wav'
+            break
+          case 6:
+            var tsFile = dir + 'deaf.wav'
+            break
+          case 7:
+            var tsFile = dir + 'undeaf.wav'
+            break
+
+        }
+        var waitMusic = connect.voiceConnection.createExternalEncoder({
+          type: 'ffmpeg',
+          source: tsFile,
+          format: 'pcm'
+        })
+        waitMusic.play()
+        connect.voiceConnection.getEncoder().setVolume(100)
+      }
     }
   }
 }

@@ -32,3 +32,4 @@ config.json
 
 #project settings 
 .idea
+.vs/
