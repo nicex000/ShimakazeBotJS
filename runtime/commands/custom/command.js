@@ -353,6 +353,39 @@ Commands.pressf = {
   }
 }
 
+Commands.weenmoji = {
+  name: 'weenmoji',
+  help: 'halloween stuff',
+  aliases: ['wm'],
+  timeout: 3,
+  level: 5,
+  fn: function (msg, suffix, bot) {
+    var guild = msg.guild
+    var botuser = bot.User
+    var botPerms = botuser.permissionsFor(guild)
+    if (!botPerms.General.MANAGE_NICKNAMES) {
+      msg.reply("I don't have enough permissions to do this!")
+      return
+    } else if (suffix.length == 0) {
+      msg.channel.sendMessage('No suffix provided.')
+    } else {
+      guild.members.forEach(function (member) {
+        if (!member.bot) {
+          if (!(member.name.startsWith(suffix.substr(0, 2)) || member.name.startsWith(suffix.substr(3, 5)))) {
+            var str = suffix.substr(0, 2) + member.name
+            str = str.substr(0, 32)
+            var pr = member.setNickname(str)
+            Logger.info(member.name)
+            pr.catch(function (error) {
+              Logger.error(error)
+            })
+          }
+        }
+      })
+    }
+  }
+}
+
 Commands.shimasay = {
   name: 'shimasay',
   help: 'Talk for me',
