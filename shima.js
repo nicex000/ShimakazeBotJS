@@ -56,8 +56,8 @@ bot.Dispatcher.on(Event.GATEWAY_READY, function () {
     version: require('./package.json').version
   })
   Logger.info(`Logged in as ${bot.User.username}#${bot.User.discriminator} (ID: ${bot.User.id}) and serving ${bot.Users.length} users in ${bot.Guilds.length} servers.`)
-  bot.User.setStatus("online", {
-    name: "with Rensouhou-chan",
+  bot.User.setStatus('online', {
+    name: 'with Rensouhou-chan',
     type: 0
   })
   if (argv.shutdownwhenready) {
@@ -88,17 +88,15 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
     var cmd
     var suffix
     var message = c.message.content
-    if( c.message.author.id === bot.User.id) {
+    if (c.message.author.id === bot.User.id) {
       return
     }
     if (c.message.author.bot) {
       if (c.message.author.id == 386449093385388053 || c.message.author.id == 422330233035948032 || c.message.author.id == 476151220004978689 || c.message.author.id == 191981451460345856) {
-        if(message.indexOf(prefix) === 1 || message.indexOf(bot.User.mention) === 1 || message.indexOf(bot.User.nickMention) === 1)
-        {
+        if (message.indexOf(prefix) === 1 || message.indexOf(bot.User.mention) === 1 || message.indexOf(bot.User.nickMention) === 1) {
           message = message.slice(1)
         }
-      }
-      else {
+      } else {
         return
       }
     }
@@ -126,13 +124,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
       if (typeof commands[cmd] !== 'object') {
         return // ignore JS build-in array functions
       }
-      if(c.message.isPrivate)
-      {
-          Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} -> in DM`)
-      }
-      else
-      {
-          Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} ->in ${c.message.guild.name} #${c.message.channel.name}`)
+      if (c.message.isPrivate) {
+        Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} -> in DM`)
+      } else {
+        Logger.info(`Executing <${c.message.resolveContent()}> from ${c.message.author.username} ->in ${c.message.guild.name} #${c.message.channel.name}`)
       }
       if (commands[cmd].level === 'master') {
         if (Config.permissions.master.indexOf(c.message.author.id) > -1) {
@@ -141,10 +136,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
           } catch (e) {
             c.message.channel.sendMessage('An error occured while trying to process this command, you should let the bot author know. \n```' + e + '```')
             Logger.error(`Command error, thrown by ${commands[cmd].name}: ${e}`, {
-              //author: c.message.author,
+              // author: c.message.author,
               guild: loggingGuild,
-              //botID: bot.User.id,
-              //cmd: cmd,
+              // botID: bot.User.id,
+              // cmd: cmd,
               error: e
             })
           }
@@ -171,10 +166,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                     } catch (e) {
                       c.message.channel.sendMessage('An error occurred while trying to process this command, you should let the bot author know. \n```' + e + '```')
                       Logger.error(`Command error, thrown by ${commands[cmd].name}: ${e}`, {
-                        //author: c.message.author,
+                        // author: c.message.author,
                         guild: loggingGuild,
-                        //botID: bot.User.id,
-                        //cmd: cmd,
+                        // botID: bot.User.id,
+                        // cmd: cmd,
                         error: e
                       })
                     }
@@ -186,10 +181,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                         } catch (e) {
                           c.message.channel.sendMessage('An error occurred while trying to process this command, you should let the bot author know. \n```' + e + '```')
                           Logger.error(`Command error, thrown by ${commands[cmd].name}: ${e}`, {
-                            //author: c.message.author,
+                            // author: c.message.author,
                             guild: loggingGuild,
-                            //botID: bot.User.id,
-                            //cmd: cmd,
+                            // botID: bot.User.id,
+                            // cmd: cmd,
                             error: e
                           })
                         }
@@ -203,20 +198,20 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                         }).catch((e) => {
                           Logger.error('Reply check error, ' + e, {
                             replyType: 'nsfw',
-                            //author: c.message.author,
+                            // author: c.message.author,
                             guild: loggingGuild,
-                            //botID: bot.User.id,
-                            //cmd: cmd,
+                            // botID: bot.User.id,
+                            // cmd: cmd,
                             cmd: cmd
                           })
                         })
                       }
                     }).catch(function (e) {
                       Logger.error('Permission error: ' + e, {
-                        //author: c.message.author,
+                        // author: c.message.author,
                         guild: loggingGuild,
-                        //botID: bot.User.id,
-                        //cmd: cmd,
+                        // botID: bot.User.id,
+                        // cmd: cmd,
                         cmd: cmd
                       })
                     })
@@ -234,10 +229,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
                   }).catch((e) => {
                     Logger.error('Reply check error, ' + e, {
                       replyType: 'perms',
-                      //author: c.message.author,
+                      // author: c.message.author,
                       guild: loggingGuild,
-                      //botID: bot.User.id,
-                      //cmd: cmd,
+                      // botID: bot.User.id,
+                      // cmd: cmd,
                       cmd: cmd,
                       error: e
                     })
@@ -248,10 +243,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
           }
         }).catch(function (e) {
           Logger.error('Permission error: ' + e, {
-            //author: c.message.author,
+            // author: c.message.author,
             guild: loggingGuild,
-            //botID: bot.User.id,
-            //cmd: cmd,
+            // botID: bot.User.id,
+            // cmd: cmd,
             error: e
           })
         })
@@ -276,10 +271,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
             }
           }).catch(function (e) {
             Logger.error('Permission error: ' + e, {
-              //author: c.message.author,
+              // author: c.message.author,
               guild: loggingGuild,
-              //botID: bot.User.id,
-              //cmd: cmd,
+              // botID: bot.User.id,
+              // cmd: cmd,
               error: e
             })
           })
@@ -291,10 +286,10 @@ bot.Dispatcher.on(Event.MESSAGE_CREATE, function (c) {
       Logger.warn('Database file missing for a server, creating one now...')
     } else {
       Logger.error('Prefix error: ' + e, {
-        //author: c.message.author,
+        // author: c.message.author,
         guild: loggingGuild,
-        //botID: bot.User.id,
-        //cmd: cmd,
+        // botID: bot.User.id,
+        // cmd: cmd,
         error: e
       })
     }
@@ -308,24 +303,20 @@ bot.Dispatcher.on(Event.GUILD_MEMBER_ADD, function (s) {
     if (r === 'on' || r === 'channel') {
       datacontrol.customize.reply(s, 'welcomeMessage').then((x) => {
         if (x === null || x === 'default') {
-          if(s.guild.id == 98922706317103104)
-          {
-              s.guild.textChannels.forEach(function(ch){
-                if(ch.id == 186873358636285952)
-                {
-                  var suffix = -1 + ' anti'
-                  suffix = suffix.split(' ')
-                  ch.sendMessage(`Welcome ${s.member.username} to the server!`).then((m) => datacontrol.permissions.adjustLevel(m, m.mentions, parseFloat(suffix[0]), m.mention_roles).then(function () {
+          if (s.guild.id == 98922706317103104) {
+            s.guild.textChannels.forEach(function (ch) {
+              if (ch.id == 186873358636285952) {
+                var suffix = -1 + ' anti'
+                suffix = suffix.split(' ')
+                ch.sendMessage(`Welcome ${s.member.username} to the server!`).then((m) => datacontrol.permissions.adjustLevel(m, m.mentions, parseFloat(suffix[0]), m.mention_roles).then(function () {
 
-                  }).catch(function (err) {
-                    msg.channel.sendMessage('Help! Something went wrong!')
-                    Logger.error(err)
-                  }))
-                }
-              })
-          }
-          else
-          {
+                }).catch(function (err) {
+                  msg.channel.sendMessage('Help! Something went wrong!')
+                  Logger.error(err)
+                }))
+              }
+            })
+          } else {
             s.guild.generalChannel.sendMessage(`Welcome ${s.member.username} to ${s.guild.name}!`)
           }
         } else {
@@ -381,6 +372,37 @@ bot.Dispatcher.on(Event.PRESENCE_MEMBER_INFO_UPDATE, (user) => {
   })
 })
 
+bot.Dispatcher.on(Event.PRESENCE_UPDATE, (e) => {
+  if (e.user.bot) { // ignore bots
+    return
+  }
+  if (e.guild.id === '345295036809740289') { // make it only work on lolis server
+    var role
+    var member
+    if (e.user.game !== null && e.user.game.type === 1) {   // 1 for streaming
+      if (e.user.previousGame === null || e.user.previousGame.type !== 1) {
+        member = e.guild.members.find((m) => m.id === e.user.id)
+        role = e.guild.roles.find(r => r.name === 'Now Streaming')
+        member.assignRole(role).then(() => {
+          Logger.info(e.user.username + ' started streaming.')
+        }).catch((error) => {
+          Logger.info('Failed to assign streaming role to ' + e.user.username)
+        })
+      }
+    } else if (e.user.previousGame !== null && e.user.previousGame.type === 1) { // 1 for streaming
+      if (e.user.game === null || e.user.game.type !== 1) {
+        member = e.guild.members.find((m) => m.id === e.user.id)
+        role = member.roles.find(r => r.name === 'Now Streaming')
+        member.unassignRole(role).then(() => {
+          Logger.info(e.user.username + ' stopped streaming.')
+        }).catch((error) => {
+          Logger.info('Failed to unassign streaming role from ' + e.user.username)
+        })
+      }
+    }
+  }
+})
+
 bot.Dispatcher.on(Event.GATEWAY_HELLO, (gatewayInfo) => {
   Logger.debug(`Gateway trace, ${gatewayInfo.data._trace}`, {
     botID: bot.User.id,
@@ -404,8 +426,7 @@ bot.Dispatcher.on(Event.VOICE_CHANNEL_JOIN, function (e) {
   if (connect && connect.voiceConnection.guildId === '345295036809740289') { // make it only work on lolis server
     try {
       commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 1, bot)
-    }
-    catch (c) {
+    } catch (c) {
       Logger.info(c)
     }
   }
@@ -422,16 +443,13 @@ bot.Dispatcher.on(Event.VOICE_CHANNEL_LEAVE, function (e) {
     if (e.newChannelId === '345305120440844289') { // if user has been thrown in the dumpster
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 3, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
-    }
-    else {
+    } else {
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 2, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
     }
@@ -449,16 +467,13 @@ bot.Dispatcher.on(Event.VOICE_USER_SELF_MUTE, function (e) {
     if (e.state) {
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 4, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
-    }
-    else {
+    } else {
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 5, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
     }
@@ -476,16 +491,13 @@ bot.Dispatcher.on(Event.VOICE_USER_SELF_DEAF, function (e) {
     if (e.state) {
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 6, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
-    }
-    else {
+    } else {
       try {
         commands['teamspeaksimulator'].fn(connect.voiceConnection.guildId, 7, bot)
-      }
-      catch (c) {
+      } catch (c) {
         Logger.info(c)
       }
     }
