@@ -306,7 +306,7 @@ Commands.unassignrole = {
       return
     } else {
       var member = guild.members.find((m) => m.id === user.id)
-      var role = member.roles.find(r => r.name == suffix)
+      var role = member.roles.find(r => r.name === suffix)
       if (role !== undefined && member !== undefined) {
         if (guild.id == 345295036809740289) {
           var botMember = guild.members.find((m) => m.id === botuser.id)

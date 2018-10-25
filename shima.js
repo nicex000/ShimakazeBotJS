@@ -376,27 +376,39 @@ bot.Dispatcher.on(Event.PRESENCE_UPDATE, (e) => {
   if (e.user.bot) { // ignore bots
     return
   }
-  if (e.guild.id === '345295036809740289') { // make it only work on lolis server
+  if (e.guild.id === '345295036809740289' || e.guild.id === '132637465352732672') { // make it only work on lolis and Firestorm1113's servers
     var role
     var member
-    if (e.user.game !== null && e.user.game.type === 1) {   // 1 for streaming
-      if (e.user.previousGame === null || e.user.previousGame.type !== 1) {
-        member = e.guild.members.find((m) => m.id === e.user.id)
+    var user = e.user
+    if (user.id === undefined) {
+      user = e.member
+    }
+    if (user.game !== null && user.game.type === 1) {   // 1 for streaming
+      if (e.user.previousGame === null || user.previousGame.type !== 1) {
+        member = e.guild.members.find((m) => m.id === user.id)
         role = e.guild.roles.find(r => r.name === 'Now Streaming')
+        if (role === undefined || member === undefined) {
+          Logger.warn('Unable to find the streaming role or the member ' + user.username)
+          return
+        }
         member.assignRole(role).then(() => {
-          Logger.info(e.user.username + ' started streaming.')
+          Logger.info(user.username + ' started streaming.')
         }).catch((error) => {
-          Logger.info('Failed to assign streaming role to ' + e.user.username)
+          Logger.warn('Failed to assign streaming role to ' + user.username)
         })
       }
-    } else if (e.user.previousGame !== null && e.user.previousGame.type === 1) { // 1 for streaming
-      if (e.user.game === null || e.user.game.type !== 1) {
-        member = e.guild.members.find((m) => m.id === e.user.id)
+    } else if (user.previousGame !== null && user.previousGame.type === 1) { // 1 for streaming
+      if (user.game === null || user.game.type !== 1) {
+        member = e.guild.members.find((m) => m.id === user.id)
         role = member.roles.find(r => r.name === 'Now Streaming')
+        if (role === undefined || member === undefined) {
+          Logger.warn('Unable to find the streaming role or the member ' + user.username)
+          return
+        }
         member.unassignRole(role).then(() => {
-          Logger.info(e.user.username + ' stopped streaming.')
+          Logger.info(user.username + ' stopped streaming.')
         }).catch((error) => {
-          Logger.info('Failed to unassign streaming role from ' + e.user.username)
+          Logger.warn('Failed to unassign streaming role from ' + user.username)
         })
       }
     }
