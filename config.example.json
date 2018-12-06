@@ -6,9 +6,34 @@
     "password": "Again if you need this, optional",
     "oauth": "URL"
   },
-  "settings": {
-    "prefix": "anything can be entered as the global prefix along side mentions"
+  "database":{
+    "host": "localhost",
+    "port": 28015,
+    "password": "",
+    "user": "admin"
   },
+  "settings": {
+    "prefix": "anything can be entered as the global prefix along side mentions",
+    "autodeletemsg": true,
+    "deleteTimeout": 3000,
+    "deleteTimeoutLong": 6000,
+    "maxvcslots": 50
+  },
+  "audio_paths": {
+    "lovelive": "D:/Library/Music/Love Live/",
+    "idolmaster": "D:/Library/Music/THE IDOM@STERS/THE iDOLM@STER Music (Lossless)/",
+    "teamspeak":  "TeamSpeak/"
+  },
+  "bezerk": {
+   "use": false,
+   "uri": "ws://localhost:1337"
+ },
+ "elasticsearch": {
+   "use": false,
+   "client": {
+     "host": "localhost:9200"
+   }
+ },
   "permissions": {
     "master": ["you need to enter the ID from the user you want as master here", "you can extend this array like this if you need more"],
     "level1": [],
@@ -22,6 +47,10 @@
     },
     "google": "A google key",
     "mashape": "A mashape key",
-    "cse": "Custom Search Engine token, the wiki describes this"
+    "twitchId": "A google key",
+    "bugsnag": "A Bugsnag api key, Bugsnag tracker users only",
+    "imgur": "A Imgur Client-ID",
+    "cleverbot_user": "",
+    "cleverbot_key": ""
   }
 }
