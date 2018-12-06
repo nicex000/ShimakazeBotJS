@@ -277,6 +277,7 @@ Commands.fact = {
 Commands.dice = {
   name: 'dice',
   help: "I'll roll some dice!",
+  aliases: ['roll'],
   timeout: 5,
   level: 0,
   fn: function (msg, suffix) {
