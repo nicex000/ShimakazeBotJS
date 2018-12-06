@@ -277,6 +277,7 @@ Commands.fact = {
 Commands.dice = {
   name: 'dice',
   help: "I'll roll some dice!",
+  aliases: ['roll'],
   timeout: 5,
   level: 0,
   fn: function (msg, suffix) {
@@ -296,7 +297,7 @@ Commands.dice = {
           return
         }
         var roll = JSON.parse(body)
-        msg.reply('Your ' + roll.input + ' resulted in ' + roll.result + ' ' + roll.details)
+        msg.reply('Your ' + roll.input + ' resulted in' + roll.result.replace(/\+/, '+ ') + ' ' + roll.details)
       }
     })
   }
