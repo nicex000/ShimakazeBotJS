@@ -265,7 +265,7 @@ Commands.assignrole = {
         var botMember = guild.members.find((m) => m.id === botuser.id)
         var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
         if (botPerm !== undefined) {
-          if (role.position > botPerm.position) {
+          if (role.position >= botPerm.position) {
             msg.channel.sendMessage('Failed to add the role `' + suffix + '` to `' + user.username + '`. The role is not a self assignable role.')
             return
           }
@@ -316,7 +316,7 @@ Commands.unassignrole = {
         var botMember = guild.members.find((m) => m.id === botuser.id)
         var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
         if (botPerm !== undefined) {
-          if (role.position > botPerm.position) {
+          if (role.position >= botPerm.position) {
             msg.channel.sendMessage('Failed to remove the role `' + suffix + '` from `' + user.username + '`. The role is not a self assignable role.')
             if (suffix.includes('kiddo') && guild.members.find((m) => m.id === user.id).roles.find(r => r.name.includes('kiddo')) !== undefined) {
               msg.reply('Sorry kiddo. Come back when you\'re 21.')
