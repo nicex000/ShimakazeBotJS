@@ -262,17 +262,22 @@ Commands.assignrole = {
       var member = guild.members.find((m) => m.id === user.id)
       var role = guild.roles.find(r => r.name == suffix)
       if (role !== undefined && member !== undefined) {
-        if (guild.id == 345295036809740289) {
-          var botMember = guild.members.find((m) => m.id === botuser.id)
-          var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
-          if (botPerm === undefined) {
-            msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
-            return
-          }
+        var botMember = guild.members.find((m) => m.id === botuser.id)
+        var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
+        if (botPerm !== undefined) {
           if (role.position > botPerm.position) {
             msg.channel.sendMessage('Failed to add the role `' + suffix + '` to `' + user.username + '`. The role is not a self assignable role.')
             return
           }
+        }
+        else if (guild.id == 345295036809740289) {
+          msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
+          return
+        }
+        else if (guild.id == 376294828184567810) //IGNORE LIST (Minh's server)
+        {
+          msg.channel.sendMessage('I am not allowed to assign roles on this server. Please contact an Admin to add your role.')
+          return
         }
         member.assignRole(role).then(() => {
           msg.channel.sendMessage('Successfully added `' + suffix + '` to `' + user.username + '`.')
@@ -308,13 +313,9 @@ Commands.unassignrole = {
       var member = guild.members.find((m) => m.id === user.id)
       var role = member.roles.find(r => r.name === suffix)
       if (role !== undefined && member !== undefined) {
-        if (guild.id == 345295036809740289) {
-          var botMember = guild.members.find((m) => m.id === botuser.id)
-          var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
-          if (botPerm === undefined) {
-            msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
-            return
-          }
+        var botMember = guild.members.find((m) => m.id === botuser.id)
+        var botPerm = botMember.roles.find(r => r.name === 'Shima-Bot')
+        if (botPerm !== undefined) {
           if (role.position > botPerm.position) {
             msg.channel.sendMessage('Failed to remove the role `' + suffix + '` from `' + user.username + '`. The role is not a self assignable role.')
             if (suffix.includes('kiddo') && guild.members.find((m) => m.id === user.id).roles.find(r => r.name.includes('kiddo')) !== undefined) {
@@ -322,6 +323,15 @@ Commands.unassignrole = {
             }
             return
           }
+        }
+        else if (guild.id == 345295036809740289) {
+          msg.channel.sendMessage('Please use the main Bot, or contact one of the Admins')
+          return
+        }
+        else if (guild.id == 376294828184567810) //IGNORE LIST (Minh's server)
+        {
+          msg.channel.sendMessage('I am not allowed to unassign roles on this server. Please contact an Admin to remove your role.')
+          return
         }
         member.unassignRole(role).then(() => {
           msg.channel.sendMessage('Successfully removed `' + suffix + '` from `' + user.username + '`.')
@@ -403,6 +413,10 @@ Commands.shimasay = {
       return
     }
     var guildname = suffix.substring(0, x - 1)
+    if(guildname[guildname.length-1] == " ")
+    {
+      guildname = suffix.substring(0, guildname.length - 2)
+    }
     var suff2 = suffix.substring(x + 1)
     x = suff2.indexOf(' ')
     if (x <= 0) {
