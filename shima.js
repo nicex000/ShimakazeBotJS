@@ -1,3 +1,4 @@
+/* eslint-disable brace-style */
 'use strict'
 process.title = 'Shimakaze-chan'
 
@@ -22,6 +23,8 @@ var timeout = runtime.internal.timeouts
 var commands = runtime.commandcontrol.Commands
 var aliases = runtime.commandcontrol.Aliases
 var datacontrol = runtime.datacontrol
+var debugChannel
+var streamingGuilds = ['345295036809740289', '132637465352732672', '376294828184567810'] //lolis, Firestorm1113, Minh's servers
 
 Logger.info('Initializing...')
 
@@ -56,6 +59,17 @@ bot.Dispatcher.on(Event.GATEWAY_READY, function () {
     version: require('./package.json').version
   })
   Logger.info(`Logged in as ${bot.User.username}#${bot.User.discriminator} (ID: ${bot.User.id}) and serving ${bot.Users.length} users in ${bot.Guilds.length} servers.`)
+  var gs = bot.Guilds.toArray()
+  for (var i = 0; i < gs.length; i++) {
+    if (gs[i].name == "lolis") {
+      var cs = gs[i].channels
+      for (var j = 0; j < cs.length; j++) {
+        if (cs[j].isGuildText && cs[j].name == "bot-testing-room") {
+          debugChannel = cs[j]
+        }
+      }
+    }
+  }
   bot.User.setStatus('online', {
     name: 'with Rensouhou-chan',
     type: 0
@@ -376,42 +390,94 @@ bot.Dispatcher.on(Event.PRESENCE_UPDATE, (e) => {
   if (e.user.bot) { // ignore bots
     return
   }
-  if (e.guild.id === '345295036809740289' || e.guild.id === '132637465352732672') { // make it only work on lolis and Firestorm1113's servers
+
+  var bIsStreamingGuild = false
+  streamingGuilds.forEach(function (guild) { // make it only work on selected servers
+    if (e.guild.id === guild) {
+      bIsStreamingGuild = true
+    }
+  })
+  if (!bIsStreamingGuild) {
+    return
+  }
+
+  var user = e.user
+  if (user.id === undefined) {
+    user = e.member
+  }
+  var add = false
+  var streamingStatusChanged = false
+  var guildsSuccess = 0
+  var guildsNoMember = 0
+  var guildsNoRole = 0
+  streamingGuilds.forEach(function (guildID) {
+    var guild = bot.Guilds.find((g) => g.id === guildID)
     var role
     var member
-    var user = e.user
-    if (user.id === undefined) {
-      user = e.member
-    }
+
     if (user.game !== null && user.game.type === 1) {   // 1 for streaming
       if (e.user.previousGame === null || user.previousGame.type !== 1) {
-        member = e.guild.members.find((m) => m.id === user.id)
-        role = e.guild.roles.find(r => r.name === 'Now Streaming')
-        if (role === undefined || member === undefined) {
-          Logger.warn('Unable to find the streaming role or the member ' + user.username)
-          return
+        streamingStatusChanged = true
+        add = true
+        var canAssign = true
+        member = guild.members.find((m) => m.id === user.id)
+        if (member === undefined) {
+          guildsNoMember++
+          canAssign = false
         }
-        member.assignRole(role).then(() => {
-          Logger.info(user.username + ' started streaming.')
-        }).catch((error) => {
-          Logger.warn('Failed to assign streaming role to ' + user.username)
-        })
+        role = guild.roles.find(r => r.name === 'Now Streaming')
+        if (role === undefined) {
+          guildsNoRole++
+          canAssign = false
+        }
+        if (canAssign) {
+          guildsSuccess++
+          member.assignRole(role).then(() => {
+          }).catch((error) => {
+            var debugString = 'Error adding role to *' + user.username + '* in **' + guild.name + '**. Error: ' + error
+            debugChannel.sendMessage(debugString)
+            Logger.warn('Failed to assign streaming role to ' + user.username)
+          })
+        }
       }
     } else if (user.previousGame !== null && user.previousGame.type === 1) { // 1 for streaming
       if (user.game === null || user.game.type !== 1) {
-        member = e.guild.members.find((m) => m.id === user.id)
-        role = member.roles.find(r => r.name === 'Now Streaming')
-        if (role === undefined || member === undefined) {
-          Logger.warn('Unable to find the streaming role or the member ' + user.username)
-          return
+        streamingStatusChanged = true
+        add = false
+        var canUnassign = true
+        member = guild.members.find((m) => m.id === user.id)
+        if (member === undefined) {
+          guildsNoMember++
+          canUnassign = false
         }
-        member.unassignRole(role).then(() => {
-          Logger.info(user.username + ' stopped streaming.')
-        }).catch((error) => {
-          Logger.warn('Failed to unassign streaming role from ' + user.username)
-        })
+        role = guild.roles.find(r => r.name === 'Now Streaming')
+        if (role === undefined) {
+          guildsNoRole++
+          canUnassign = false
+        }
+        if (canUnassign) {
+          guildsSuccess++
+          member.unassignRole(role).then(() => {
+          }).catch((error) => {
+            var debugString = 'Error removing role from *' + user.username + '* in **' + guild.name + '**. Error: ' + error
+            debugChannel.sendMessage(debugString)
+            Logger.warn('Failed to unassign streaming role from ' + user.username)
+          })
+        }
       }
     }
+  })
+  if (!streamingStatusChanged) {
+    return
+  }
+  var logMessage = user.username + (add ? ' started' : ' stopped') + ` streaming. ${guildsSuccess} guilds updated.` +
+    (guildsSuccess < 1 ? ` ${guildsNoMember} guilds didn't have the member.` : '') +
+    (guildsNoRole > 0 ? ` ${guildsNoRole} guilds didn't have the role.` : '')
+  if (guildsNoRole > 0 || guildsSuccess < 1) {
+    Logger.warn(logMessage)
+  }
+  else {
+    Logger.info(logMessage)
   }
 })
 
