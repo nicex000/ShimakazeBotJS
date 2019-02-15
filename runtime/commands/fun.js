@@ -297,7 +297,11 @@ Commands.dice = {
           return
         }
         var roll = JSON.parse(body)
-        msg.reply('Your **' + roll.input + '** resulted in **' + roll.result + '** _' + roll.details.replace(/\+/, '+ ') + '_')
+        if (roll.result === null || roll.details.length > 1200) {
+          msg.reply('The API returned an invalid response.')
+          return
+        }
+        msg.reply('Your **' + roll.input + '** resulted in **' + roll.result + '** _' + roll.details.replace(/\+/g, '+ ') + '_')
       }
     })
   }
