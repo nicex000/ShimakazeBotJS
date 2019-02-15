@@ -297,7 +297,7 @@ Commands.dice = {
           return
         }
         var roll = JSON.parse(body)
-        msg.reply('Your ' + roll.input + ' resulted in' + roll.result.replace(/\+/, '+ ') + ' ' + roll.details)
+        msg.reply('Your **' + roll.input + '** resulted in **' + roll.result + '** _' + roll.details.replace(/\+/, '+ ') + '_')
       }
     })
   }
