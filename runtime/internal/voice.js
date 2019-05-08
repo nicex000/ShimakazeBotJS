@@ -230,9 +230,9 @@ exports.lovelive = function (msg, suffix, bot) {
         }
 
         var ll = connection.voiceConnection.createExternalEncoder({
-          type: 'ffmpeg',
+          type: 'mpv',
           source: dir, // Caps sensitive why
-          format: 'pcm'
+          format: 'opus'
         })
         ll.play()
       }
@@ -244,9 +244,9 @@ function waiting (vc, msg, bot) {
     var music = fs.readdirSync('music/')
     var lobbySong = 'lobbySong.mp3'
     var waitMusic = vc.voiceConnection.createExternalEncoder({
-      type: 'ffmpeg',
+      type: 'mpv',
       source: lobbySong,
-      format: 'pcm'
+      format: 'opus'
     })
     waitMusic.play()
     bot.VoiceConnections.find(v => v.voiceConnection.guild.id === msg.guild.id).voiceConnection.getEncoder().setVolume(v)
@@ -280,8 +280,8 @@ function next (msg, suffix, bot) {
           list[msg.guild.id].skips.users = []
         }
         var encoder = connection.voiceConnection.createExternalEncoder({
-          type: 'ffmpeg',
-          format: 'pcm',
+          type: 'mpv',
+          format: 'opus',
           source: list[msg.guild.id].link[0]
         })
         encoder.play()
@@ -541,80 +541,7 @@ exports.request = function (msg, suffix, bot, level, listIndex) {
         type: 'key',
         key: Config.api_keys.google
       })
-      api.playlistItems.list({
-        part: 'snippet',
-        pageToken: [],
-        maxResults: 50,
-        playlistId: query.list
-      }, function (err, data) {
-        if (err) {
-          msg.channel.sendMessage('Something went wrong while requesting information about this playlist.').then((m) => {
-            if (Config.settings.autodeletemsg) {
-              setTimeout(() => {
-                m.delete().catch((e) => Logger.error(e))
-              }, Config.settings.deleteTimeout)
-            }
-          })
-          Logger.error('Playlist failure, ' + err)
-          return
-        } else if (data) {
-          tempData = data
-         var nextPage = data.nextPageToken
-         var ind = 0
-         for(var ii = 0; ii < listIndex; ii++)
-         {
-           nextPage = data.nextPageToken
-           if(nextPage === undefined)
-           {
-             ii = listIndex
-           }
-           else
-           {
-             msg.channel.sendMessage(nextPage)
-             new Promise(function(resolve, reject){
-               api.playlistItems.list({
-                 part: 'snippet',
-                 pageToken: nextPage,
-                 maxResults: 50,
-                 playlistId: query.list
-               }, function (erro, data2) {
-                 if (erro) {
-                   msg.channel.sendMessage('Something went wrong while requesting information about this playlist.').then((m) => {
-                     if (Config.settings.autodeletemsg) {
-                       setTimeout(() => {
-                         m.delete().catch((e) => Logger.error(e))
-                       }, Config.settings.deleteTimeout)
-                     }
-                   })
-                   Logger.error('Playlist failiure, ' + erro)
-                   return reject(-1)
-                 }
-                 else if (data2) {
-                   tempData=data2
-                   return resolve(0)
-                 }
-               })
-             }).then((retu) => {
-               ind++
-               if(retu ==-1){
-                 return
-               }
-               if(ind == listIndex)
-               {
-                 temp = tempData.items
-                 safeLoop(msg, suffix, bot, listIndex)
-               }
-               })
-
-           }
-         }
-         if(listIndex == 0)
-         {
-           temp = tempData.items
-           safeLoop(msg, suffix, bot, listIndex)
-         }
-       }
-     })
+      getPageData(query, msg, suffix, bot, api, 0, undefined)
     } else {
       fetch(suffix, msg, listIndex).then((r) => {
         msg.channel.sendMessage(`Added **${r.title}** to the playlist.`).then((m) => {
@@ -637,6 +564,64 @@ exports.request = function (msg, suffix, bot, level, listIndex) {
             }, Config.settings.deleteTimeout)
           }
         })
+      })
+    }
+  }
+}
+
+function getPageData (query, msg, suffix, bot, api, page, pageToken) {
+  if (page === 0) {
+    api.playlistItems.list({
+      part: 'snippet',
+      pageToken: [],
+      maxResults: 50,
+      playlistId: query.list
+    }, function (err, data) {
+      if (err) {
+        msg.channel.sendMessage('Something went wrong while requesting information about this playlist.').then((m) => {
+          if (Config.settings.autodeletemsg) {
+            setTimeout(() => {
+              m.delete().catch((e) => Logger.error(e))
+            }, Config.settings.deleteTimeout)
+          }
+        })
+        Logger.error('Playlist failure, ' + err)
+      } else if (data) {
+        Logger.info('page 0, items: ' + data.items.length)
+        temp = data.items
+        if (data.nextPageToken === undefined) {
+          safeLoop(msg, suffix, bot, 0)
+        } else {
+          getPageData(query, msg, suffix, bot, api, 1, data.nextPageToken)
+        }
+      }
+    })
+  } else if (page > 0) {
+    if (pageToken !== undefined) {
+      api.playlistItems.list({
+        part: 'snippet',
+        pageToken: pageToken,
+        maxResults: 50,
+        playlistId: query.list
+      }, function (err, data) {
+        if (err) {
+          msg.channel.sendMessage('Something went wrong while requesting information about this playlist.').then((m) => {
+            if (Config.settings.autodeletemsg) {
+              setTimeout(() => {
+                m.delete().catch((e) => Logger.error(e))
+              }, Config.settings.deleteTimeout)
+            }
+          })
+          Logger.error('Playlist failure, ' + err)
+        } else if (data) {
+          temp = temp.concat(data.items)
+          Logger.info('page' + page + ', items: ' + data.items.length + '  total items: ' + temp.length)
+          if (data.nextPageToken === undefined) {
+            safeLoop(msg, suffix, bot, 0)
+          } else {
+            getPageData(query, msg, suffix, bot, api, page + 1, data.nextPageToken)
+          }
+        }
       })
     }
   }
@@ -694,9 +679,9 @@ exports.tsSimulator = function (guild, index, bot) {
 
         }
         var waitMusic = connect.voiceConnection.createExternalEncoder({
-          type: 'ffmpeg',
+          type: 'mpv',
           source: tsFile,
-          format: 'pcm'
+          format: 'opus'
         })
         waitMusic.play()
         connect.voiceConnection.getEncoder().setVolume(100)
@@ -716,7 +701,7 @@ function fetch (v, msg, listIndex, stats) {
     if (v.indexOf('youtu') > -1) {
       options = ['--skip-download', '-f bestaudio/worstvideo', '--add-header', 'Authorization:' + Config.api_keys.google]
     } else {
-      if(v.includes('nicovideo.jp')) {
+      if (v.includes('nicovideo.jp')) {
         options = ['--skip-download', '--netrc']
       } else {
         options = ['--skip-download', '-f bestaudio/worstvideo']
@@ -731,8 +716,9 @@ function fetch (v, msg, listIndex, stats) {
             done: true
           })
         } else if (list[msg.guild.id].link === undefined || list[msg.guild.id].link.length < 1) {
+          if (v.includes('ytsearch:')) v = v.substring(v.indexOf(':'))
           list[msg.guild.id] = {
-            link: [i.url],
+            link: [v],
             vanity: false,
             info: [i.title],
             volume: undefined,
@@ -757,13 +743,13 @@ function fetch (v, msg, listIndex, stats) {
         } else {
         if(listIndex <1 || listIndex > list[msg.guild.id].link.length-1)
           {
-            list[msg.guild.id].link.push(i.url)
+            list[msg.guild.id].link.push(v)
             list[msg.guild.id].info.push(i.title)
             list[msg.guild.id].requester.push(msg.author.username)
           }
           else
           {
-            list[msg.guild.id].link.splice(listIndex, 0, i.url)
+            list[msg.guild.id].link.splice(listIndex, 0, v)
             list[msg.guild.id].info.splice(listIndex, 0, i.title)
             list[msg.guild.id].requester.splice(listIndex, 0, msg.author.username)
           }
@@ -841,7 +827,7 @@ function DLFetch (video, msg) {
           }
           first = true
         }
-        list[msg.guild.id].link.push(i.formats[0].url)
+        list[msg.guild.id].link.push('https://youtube.com/watch?v=' + video.snippet.resourceId.videoId)
         list[msg.guild.id].info.push(i.title)
         list[msg.guild.id].requester.push(msg.author.username)
         return resolve(first)
