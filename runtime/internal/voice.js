@@ -716,7 +716,7 @@ function fetch (v, msg, listIndex, stats) {
             done: true
           })
         } else if (list[msg.guild.id].link === undefined || list[msg.guild.id].link.length < 1) {
-          if (v.includes('ytsearch:')) v = v.substring(v.indexOf(':'))
+          if (v.includes('ytsearch:')) v = i.url
           list[msg.guild.id] = {
             link: [v],
             vanity: false,
@@ -743,6 +743,7 @@ function fetch (v, msg, listIndex, stats) {
         } else {
         if(listIndex <1 || listIndex > list[msg.guild.id].link.length-1)
           {
+            if (v.includes('ytsearch:')) v = i.url
             list[msg.guild.id].link.push(v)
             list[msg.guild.id].info.push(i.title)
             list[msg.guild.id].requester.push(msg.author.username)
