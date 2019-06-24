@@ -16,3 +16,4 @@ Also, make sure ffmpeg is compiled with libopus, as that is the codec being used
 
 ---
 "Discord", "Discord App", and any associated logos are registered trademarks of Hammer & Chisel, inc.
+This was originally a fork from the WildBeast bot
