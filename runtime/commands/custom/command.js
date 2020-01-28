@@ -444,4 +444,32 @@ Commands.shimasay = {
   }
 }
 
+Commands.getinvite = {
+  name: 'getinvite',
+  help: 'gets the server invite link',
+  hidden: true,
+  usage: 'server name',
+  level: 5,
+  fn: function (msg, suffix, bot) {
+    if (suffix.length == 0) {
+      msg.channel.sendMessage('Please write the guild')
+      return
+    }
+    var guildname = suffix
+
+    var gs = bot.Guilds.toArray()
+    for (i = 0; i < gs.length; i++) {
+      if (gs[i].name == guildname) {
+            gs[i].getInvites().then(invites => {
+              invites.forEach(invite => {
+                msg.channel.sendMessage(invite.code);
+              })
+            })
+            return
+          }
+        }
+    msg.channel.sendMessage('Guild **' + guildname + '** not found!')
+  }
+}
+
 exports.Commands = Commands
